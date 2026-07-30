@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-ssr/
+*.local
+
+# native build artefacts
+src-tauri/target/
+ios/App/Pods/
+ios/App/build/
+android/.gradle/
+android/app/build/
+android/build/
+.capacitor/
+
+# editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.log
