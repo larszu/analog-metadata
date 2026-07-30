@@ -58,7 +58,7 @@ export const WEATHER_OPTIONS: { value: Weather; label: string; icon: string }[] 
   { value: "flash", label: "Flash", icon: "⚡" },
 ];
 
-/** A small starter library of popular film stocks, offered as presets. */
+/** A curated library of popular film stocks, offered as one-tap presets. */
 export const FILM_STOCK_PRESETS: {
   brand: string;
   name: string;
@@ -66,19 +66,57 @@ export const FILM_STOCK_PRESETS: {
   type: FilmType;
   process: DevelopmentProcess;
 }[] = [
+  // Kodak — colour negative
   { brand: "Kodak", name: "Portra 400", iso: 400, type: "color-negative", process: "C-41" },
   { brand: "Kodak", name: "Portra 160", iso: 160, type: "color-negative", process: "C-41" },
+  { brand: "Kodak", name: "Portra 800", iso: 800, type: "color-negative", process: "C-41" },
   { brand: "Kodak", name: "Gold 200", iso: 200, type: "color-negative", process: "C-41" },
+  { brand: "Kodak", name: "ColorPlus 200", iso: 200, type: "color-negative", process: "C-41" },
+  { brand: "Kodak", name: "UltraMax 400", iso: 400, type: "color-negative", process: "C-41" },
   { brand: "Kodak", name: "Ektar 100", iso: 100, type: "color-negative", process: "C-41" },
+  { brand: "Kodak", name: "Pro Image 100", iso: 100, type: "color-negative", process: "C-41" },
+  // Kodak — B&W
   { brand: "Kodak", name: "Tri-X 400", iso: 400, type: "black-and-white", process: "BW" },
   { brand: "Kodak", name: "T-Max 100", iso: 100, type: "black-and-white", process: "BW" },
+  { brand: "Kodak", name: "T-Max 400", iso: 400, type: "black-and-white", process: "BW" },
+  { brand: "Kodak", name: "T-Max P3200", iso: 3200, type: "black-and-white", process: "BW" },
+  // Kodak — slide
   { brand: "Kodak", name: "Ektachrome E100", iso: 100, type: "color-slide", process: "E-6" },
+  // Ilford — B&W
   { brand: "Ilford", name: "HP5 Plus", iso: 400, type: "black-and-white", process: "BW" },
   { brand: "Ilford", name: "FP4 Plus", iso: 125, type: "black-and-white", process: "BW" },
+  { brand: "Ilford", name: "Delta 100", iso: 100, type: "black-and-white", process: "BW" },
+  { brand: "Ilford", name: "Delta 400", iso: 400, type: "black-and-white", process: "BW" },
   { brand: "Ilford", name: "Delta 3200", iso: 3200, type: "black-and-white", process: "BW" },
+  { brand: "Ilford", name: "XP2 Super 400", iso: 400, type: "black-and-white", process: "C-41" },
+  { brand: "Ilford", name: "Pan F Plus 50", iso: 50, type: "black-and-white", process: "BW" },
+  { brand: "Ilford", name: "SFX 200", iso: 200, type: "black-and-white", process: "BW" },
+  // Fujifilm
   { brand: "Fujifilm", name: "Superia X-TRA 400", iso: 400, type: "color-negative", process: "C-41" },
+  { brand: "Fujifilm", name: "Superia 200", iso: 200, type: "color-negative", process: "C-41" },
+  { brand: "Fujifilm", name: "C200", iso: 200, type: "color-negative", process: "C-41" },
+  { brand: "Fujifilm", name: "Pro 400H", iso: 400, type: "color-negative", process: "C-41" },
   { brand: "Fujifilm", name: "Velvia 50", iso: 50, type: "color-slide", process: "E-6" },
+  { brand: "Fujifilm", name: "Velvia 100", iso: 100, type: "color-slide", process: "E-6" },
   { brand: "Fujifilm", name: "Provia 100F", iso: 100, type: "color-slide", process: "E-6" },
+  { brand: "Fujifilm", name: "Acros II 100", iso: 100, type: "black-and-white", process: "BW" },
+  // Cinestill
   { brand: "Cinestill", name: "800T", iso: 800, type: "color-negative", process: "C-41" },
+  { brand: "Cinestill", name: "400D", iso: 400, type: "color-negative", process: "C-41" },
   { brand: "Cinestill", name: "50D", iso: 50, type: "color-negative", process: "C-41" },
+  { brand: "Cinestill", name: "BwXX", iso: 250, type: "black-and-white", process: "BW" },
+  // Lomography
+  { brand: "Lomography", name: "Color Negative 400", iso: 400, type: "color-negative", process: "C-41" },
+  { brand: "Lomography", name: "Color Negative 800", iso: 800, type: "color-negative", process: "C-41" },
+  { brand: "Lomography", name: "Lady Grey 400", iso: 400, type: "black-and-white", process: "BW" },
+  // Others
+  { brand: "Kentmere", name: "Pan 100", iso: 100, type: "black-and-white", process: "BW" },
+  { brand: "Kentmere", name: "Pan 400", iso: 400, type: "black-and-white", process: "BW" },
+  { brand: "Rollei", name: "Retro 400S", iso: 400, type: "black-and-white", process: "BW" },
+  { brand: "Rollei", name: "Infrared 400", iso: 400, type: "black-and-white", process: "BW" },
+  { brand: "Foma", name: "Fomapan 100", iso: 100, type: "black-and-white", process: "BW" },
+  { brand: "Foma", name: "Fomapan 400", iso: 400, type: "black-and-white", process: "BW" },
+  { brand: "Adox", name: "CHS 100 II", iso: 100, type: "black-and-white", process: "BW" },
+  { brand: "Agfa", name: "APX 100", iso: 100, type: "black-and-white", process: "BW" },
+  { brand: "Agfa", name: "Vista Plus 200", iso: 200, type: "color-negative", process: "C-41" },
 ];

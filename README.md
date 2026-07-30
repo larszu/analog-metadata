@@ -43,17 +43,25 @@ already understand.
 
 ## What it does
 
-- 📷 **Gear library** — cameras, lenses and film stocks (popular stocks as
-  one-tap presets).
+- 📷 **Gear library** — cameras, lenses and a **45+ film-stock preset library**
+  (Kodak, Ilford, Fuji, Cinestill, Lomography and more) as one-tap adds.
 - 🎬 **Rolls & frames** — create a roll (camera + film + frame count) and it
   pre-creates one frame per exposure. Log each with quick-pick aperture and
   shutter scales, weather chips, lens, subject, keywords, date and GPS.
+- ⚡ **Fast logging** — **copy the previous frame's** settings in one tap, or
+  **apply one frame's exposure to every empty frame** at once.
+- 📸 **Built-in light meter** — pick a lighting scene (or meter with the camera)
+  and read a shutter speed for every aperture at your film speed. Tap to copy.
 - 🖐️ **Capture the log page** — photograph your handwritten sheet with the
   device camera and keep it on-screen while you transcribe.
 - 🔗 **Assign scans intuitively** — import your scans, then **auto-assign in
   order** (scan 1 → frame 1 …) or link each by hand. Thumbnails show progress.
+- 🔍 **Search & insights** — find any roll, frame or piece of gear by text, and
+  see your most-shot films, cameras, lenses and apertures.
 - ⤓ **Export the bridge** — XMP sidecars, embedded EXIF for JPEGs, a CSV and a
   READ-ME, zipped up.
+- 💾 **Backup & restore** — export your whole library to one JSON file and
+  import it on another device.
 - 🖨️ **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
   to carry with your camera.
 
@@ -65,6 +73,10 @@ uploaded.
 | Overview | Roll workspace |
 |---|---|
 | ![Overview](docs/screenshots/dashboard.png) | ![Workspace](docs/screenshots/workspace.png) |
+
+| Built-in light meter | Insights |
+|---|---|
+| ![Light meter](docs/screenshots/meter.png) | ![Insights](docs/screenshots/stats.png) |
 
 | Film stocks | Print DIN A6 booklet | Mobile |
 |---|---|---|
@@ -143,7 +155,11 @@ and what they do that we don't yet.
 | iOS + Android | ✅ (one codebase) | iOS | ✅ | Android | mostly iOS |
 | **Print your own DIN A6 log booklets** | ✅ | – | – | – | – |
 | Local-first / no account | ✅ | ✅ | partial | ✅ | varies |
-| Built-in light meter | ❌ | – | ✅ | – | ✅ |
+| Built-in light meter | ✅ | – | ✅ | – | ✅ |
+| Fast logging (copy / bulk-apply) | ✅ | ✅ | ✅ | – | some |
+| Full JSON backup & restore | ✅ | – | – | – | rare |
+| Global search & insights | ✅ | partial | ✅ | – | some |
+| Large film-stock preset library | ✅ (45+) | ✅ (200+) | ✅ | – | some |
 | Auto GPS + weather capture | ❌ (manual) | – | ✅ | partial | some |
 | DX / barcode frame decoding | ❌ | – | ✅ | – | – |
 | Cloud sync across devices | ❌ | iCloud | Pro | – | iCloud |
@@ -151,33 +167,36 @@ and what they do that we don't yet.
 
 **Where we already win:** true four-platform reach from a single codebase
 (most rivals are iOS-only or mobile-only), a real Windows/macOS desktop app,
-metadata that *both* Lightroom and Capture One read, and printable A6 booklets
-that tie the paper and digital sides together.
+metadata that *both* Lightroom and Capture One read, a built-in light meter,
+full JSON backup/restore, and printable A6 booklets that tie the paper and
+digital sides together.
 
-### Roadmap — features worth adding
+### Recently shipped
 
-Prioritised from the competitive scan (see the research write-up in
-[`docs/COMPARISON.md`](docs/COMPARISON.md)):
+Driven by user reviews of the competitors (see
+[`docs/COMPARISON.md`](docs/COMPARISON.md)) — the three most-loved competitor
+features and the three most-requested gaps:
+
+- ✅ **Built-in light meter** — scene presets + camera assist + exposure table
+- ✅ **Fast logging** — copy-previous-frame and bulk apply-to-empty
+- ✅ **45+ film-stock preset library**
+- ✅ **Full JSON backup & restore** (the #1 "please add export" request)
+- ✅ **Global search** across rolls, frames and gear
+- ✅ **Insights** — most-used films, cameras, lenses and apertures
+
+### Still on the roadmap
 
 1. **Cloud / multi-device sync** — log on the phone, export on the desktop.
-   (Local-first today; sync is the most-requested gap.)
 2. **Wireless phone ⇆ desktop pairing** — QR handshake so a phone pushes its
-   log-page photo straight into an open desktop session (no cable). The data
-   model and export already support it; only the transport is missing.
-3. **Built-in light meter** — meter with the phone camera and write the reading
-   straight onto the frame.
-4. **Auto GPS + weather** — capture location and conditions in the background
-   while shooting, with reverse-geocoded place names.
-5. **Write EXIF into TIFF / DNG directly** — bundle ExifTool in the Tauri
+   log-page photo straight into an open desktop session (no cable).
+3. **Auto GPS + weather** — capture location and conditions while shooting,
+   with reverse-geocoded place names.
+4. **Write EXIF into TIFF / DNG directly** — bundle ExifTool in the Tauri
    desktop build so any scan format gets embedded metadata, not just JPEG.
-6. **DX / edge-barcode decoding** — photograph the film rebate to auto-order
-   and auto-assign frames.
-7. **Printed-booklet QR tie-in** — stamp each printed A6 sheet with a QR code
+5. **DX / edge-barcode decoding** — photograph the film rebate to auto-assign.
+6. **Printed-booklet QR tie-in** — stamp each printed A6 sheet with a QR code
    that re-links it to its roll when you photograph it back in.
-8. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity-failure
-   and development timers.
-9. **Stats & insights** — most-used film, camera and aperture; rolls over time.
-10. **Import/round-trip** — read CSV/JSON exports from other logs and Lightroom.
+7. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity timers.
 
 ## Tech
 
@@ -187,7 +206,8 @@ interop · Tauri 2 (desktop) + Capacitor (mobile) shells.
 
 ## Status
 
-Core is implemented and tested end-to-end — **22 unit tests** (parsing, XMP,
-EXIF write→read round-trip, ZIP bundle, booklet PDF) plus a real-browser smoke
-of the full **add-gear → log-roll → assign → export/booklet** flow. The
-screenshots above are captured headlessly from that build.
+Core is implemented and tested end-to-end — **50 unit tests** (parsing, XMP,
+EXIF write→read round-trip, ZIP bundle, booklet PDF, exposure maths, backup
+round-trip, search and stats) plus a real-browser smoke of the full
+**add-gear → log-roll → assign → export/booklet → meter/search/insights** flow.
+The screenshots above are captured headlessly from that build.

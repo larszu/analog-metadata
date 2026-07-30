@@ -56,18 +56,28 @@ Metadata should learn from them. Sources are linked at the bottom.
   log page into an open desktop session, fitting the "connect phone to laptop"
   workflow without cables.
 
-## Prioritised roadmap
+## Implemented from this analysis
+
+The three most-praised competitor features and the three most-requested gaps
+have shipped:
+
+- ✅ **Built-in light meter** (scene presets + camera assist + exposure table)
+- ✅ **Fast one-tap logging** (copy previous frame, bulk apply-to-empty)
+- ✅ **Large film-stock preset library** (45+)
+- ✅ **Full JSON backup & restore** (the loudest "please add export" complaint)
+- ✅ **Global search** across rolls, frames and gear
+- ✅ **Insights / stats** (most-used films, cameras, lenses, apertures)
+
+## Still prioritised
 
 1. Cloud / multi-device sync (or the pairing handshake as a lighter first step)
 2. Wireless phone ⇆ desktop pairing (QR)
-3. Built-in light meter
-4. Auto GPS + weather with reverse geocoding
-5. Direct EXIF into TIFF/DNG via bundled ExifTool (desktop)
-6. DX / edge-barcode frame decoding
-7. Printed-booklet QR tie-in
-8. Shooting calculators (DoF/hyperfocal, reciprocity, dev timers)
-9. Stats & insights
-10. Import/round-trip from other logs & Lightroom
+3. Auto GPS + weather with reverse geocoding
+4. Direct EXIF into TIFF/DNG via bundled ExifTool (desktop)
+5. DX / edge-barcode frame decoding
+6. Printed-booklet QR tie-in
+7. Shooting calculators (DoF/hyperfocal, reciprocity, dev timers)
+8. Import/round-trip from other logs & Lightroom
 
 ## Sources
 

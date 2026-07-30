@@ -41,6 +41,12 @@ export function RollWorkspace() {
     () => frames?.find((f) => f.id === selectedId) ?? frames?.[0],
     [frames, selectedId],
   );
+  const prevFrame = useMemo(() => {
+    if (!frames || !selected) return undefined;
+    return [...frames]
+      .filter((f) => f.frameNumber < selected.frameNumber)
+      .sort((a, b) => b.frameNumber - a.frameNumber)[0];
+  }, [frames, selected]);
 
   if (roll === undefined || frames === undefined) return <p className="hint">Loading…</p>;
   if (roll === null) {
@@ -104,6 +110,23 @@ export function RollWorkspace() {
     await createFrame({ rollId: roll.id, frameNumber: max + 1, keywords: [], weather: [] });
   };
 
+  // Fast logging: push the selected frame's exposure onto every frame that
+  // hasn't got its own aperture/shutter/lens yet.
+  const applyToEmpty = async () => {
+    if (!selected) return;
+    const patch = {
+      lensId: selected.lensId,
+      aperture: selected.aperture,
+      shutterSpeed: selected.shutterSpeed,
+      focalLength: selected.focalLength,
+      updatedAt: new Date().toISOString(),
+    };
+    const targets = frames.filter((f) => f.id !== selected.id && !f.aperture && !f.shutterSpeed && !f.lensId);
+    if (targets.length === 0) return toast("No empty frames to fill");
+    await Promise.all(targets.map((f) => db.frames.update(f.id, patch)));
+    toast(`Applied to ${targets.length} empty frame${targets.length === 1 ? "" : "s"}`);
+  };
+
   // ---- export ----
   const doExport = async () => {
     setBusy(true);
@@ -153,6 +176,7 @@ export function RollWorkspace() {
         <button className="btn" onClick={() => scanInput.current?.click()}>＋ Import scans</button>
         <button className="btn" onClick={autoAssign}>⇄ Auto-assign in order</button>
         <button className="btn" onClick={() => logInput.current?.click()}>📷 Capture log page</button>
+        <button className="btn" onClick={applyToEmpty} title="Copy this frame's lens, aperture & shutter to all frames that have none">⤵ Apply to empty frames</button>
         <button className="btn ghost" onClick={addFrame}>＋ Frame</button>
         <input ref={scanInput} type="file" accept="image/*" multiple hidden onChange={(e) => { importScans(e.target.files); e.target.value = ""; }} />
         <input ref={logInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { captureLogPhoto(e.target.files); e.target.value = ""; }} />
@@ -215,7 +239,7 @@ export function RollWorkspace() {
 
         <div>
           {selected ? (
-            <FrameEditor key={selected.id} frame={selected} roll={roll} lenses={lenses ?? []} scans={scans} />
+            <FrameEditor key={selected.id} frame={selected} roll={roll} lenses={lenses ?? []} scans={scans} prevFrame={prevFrame} />
           ) : (
             <Empty icon="🎞️" title="No frames">Add a frame to begin.</Empty>
           )}

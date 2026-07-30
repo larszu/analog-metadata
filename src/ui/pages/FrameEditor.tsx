@@ -18,11 +18,13 @@ export function FrameEditor({
   roll,
   lenses,
   scans,
+  prevFrame,
 }: {
   frame: Frame;
   roll: Roll;
   lenses: Lens[];
   scans: ScanEntry[];
+  prevFrame?: Frame;
 }) {
   const [f, setF] = useState<Frame>(frame);
 
@@ -32,12 +34,29 @@ export function FrameEditor({
     void updateFrame(frame.id, p);
   };
 
+  // One-tap: carry the previous frame's shooting settings onto this one.
+  const copyPrevious = () => {
+    if (!prevFrame) return;
+    patch({
+      lensId: prevFrame.lensId,
+      aperture: prevFrame.aperture,
+      shutterSpeed: prevFrame.shutterSpeed,
+      focalLength: prevFrame.focalLength,
+      weather: prevFrame.weather ? [...prevFrame.weather] : undefined,
+    });
+  };
+
   const dateValue = f.dateTaken ? f.dateTaken.slice(0, 10) : "";
 
   return (
     <div className="card">
       <div className="row" style={{ marginBottom: 12 }}>
         <h2 style={{ margin: 0 }}>Frame {f.frameNumber}</h2>
+        {prevFrame && (
+          <button className="btn sm ghost" onClick={copyPrevious} title="Copy lens, aperture, shutter & weather from the previous frame">
+            ⧉ Copy previous
+          </button>
+        )}
         <div className="spacer" />
         {f.scanFileName ? (
           <span className="badge ok">↔ {f.scanFileName}</span>

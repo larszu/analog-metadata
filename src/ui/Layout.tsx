@@ -2,12 +2,15 @@ import { NavLink, Outlet } from "react-router-dom";
 
 const NAV = [
   { to: "/", icon: "🎞️", label: "Overview", end: true },
+  { to: "/search", icon: "🔍", label: "Search" },
   { sep: true },
   { to: "/rolls", icon: "🎬", label: "Film rolls" },
   { to: "/cameras", icon: "📷", label: "Cameras" },
   { to: "/lenses", icon: "🔭", label: "Lenses" },
   { to: "/films", icon: "🎞", label: "Film stocks" },
   { sep: true },
+  { to: "/meter", icon: "📸", label: "Light meter" },
+  { to: "/stats", icon: "📊", label: "Insights" },
   { to: "/print", icon: "🖨️", label: "Print booklet" },
   { to: "/settings", icon: "⚙️", label: "Settings" },
 ] as const;
