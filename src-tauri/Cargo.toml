@@ -1,0 +1,22 @@
+[package]
+name = "analog-metadata"
+version = "0.1.0"
+description = "Analog film log to digital scan metadata"
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "analog_metadata_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+
+[features]
+# Enabled by `tauri build`; disable in dev for faster iteration.
+custom-protocol = ["tauri/custom-protocol"]
