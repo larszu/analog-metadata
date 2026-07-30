@@ -174,4 +174,6 @@ export interface Settings {
   locale?: string;
   /** Software tag written into metadata. */
   softwareTag: string;
+  /** Light-meter calibration offset in EV (matches the camera assist to reality). */
+  meterCalibrationEv?: number;
 }
