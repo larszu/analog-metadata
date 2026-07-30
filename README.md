@@ -1,53 +1,74 @@
-# Analog Metadata
+<div align="center">
 
-Turn the handwritten notes from your analog film logbook into clean digital
-metadata on your scans — ready for **Lightroom Classic**, **Capture One**, and
-plain old **Windows Explorer / macOS Finder**.
+# 🎞️ Analog Metadata
 
-One codebase, four platforms: **iOS, Android, Windows, macOS** (plus any modern
-browser).
+### Turn your handwritten film log into clean digital metadata
 
-> Shoot film → jot aperture / shutter / lens / weather / subject on paper →
-> scan the negatives → in this app, snap a photo of your log page, assign each
-> handwritten row to its scan, and export XMP sidecars + embedded EXIF.
+Bridge the notes from your analog logbook straight onto your scans — ready for
+**Lightroom Classic**, **Capture One**, and **Windows Explorer / macOS Finder**.
+
+**One codebase → iOS · Android · Windows · macOS** _(and any modern browser)_
+
+<sub>React + TypeScript · local-first · no account, no upload</sub>
+
+</div>
 
 ---
 
-## Why
+<div align="center">
 
-Analog shooters keep a paper log: per **camera** (make, model), per **roll**
-(film stock, ISO, push/pull, lab, developer) and per **frame** (aperture,
-shutter, lens, subject, weather, date, location). None of that survives the
-scan — the scanner doesn't know what camera or lens you used. This app is the
-bridge: it captures that layered data the way a logbook actually works and
-writes it into the formats desktop photo apps already understand.
+![The roll workspace](docs/screenshots/workspace.png)
+
+<sub>The assignment workspace: your log-page photo on the left, one frame per exposure with auto-linked scan thumbnails, quick-pick aperture & shutter scales and weather chips on the right.</sub>
+
+</div>
+
+---
+
+## The problem
+
+Analog shooters keep a paper log. Some facts are noted once per **camera**
+(make, model), some once per **roll** (film stock, ISO, push/pull, lab,
+developer) and some per **frame** (aperture, shutter, lens, subject, weather,
+date, location). **None of it survives the scan** — the scanner has no idea what
+camera or lens you used.
+
+**Analog Metadata is the bridge.** It captures that layered data the way a
+logbook actually works, then writes it into the formats desktop photo apps
+already understand.
+
+> Shoot film → jot your settings on paper → scan the negatives → in the app,
+> snap a photo of your log page, assign each handwritten row to its scan, and
+> export XMP sidecars + embedded EXIF.
 
 ## What it does
 
-- **Gear library** — cameras, lenses and film stocks (with a starter library of
-  popular stocks as one-tap presets).
-- **Rolls & frames** — create a roll (camera + film + frame count) and it
-  pre-creates one frame per exposure. Log each frame with quick-pick aperture
-  and shutter scales, weather chips, lens, subject, keywords, date, GPS.
-- **Capture the log page** — use the device camera to photograph your
-  handwritten sheet and keep it on-screen as a reference while you transcribe.
-- **Assign scans intuitively** — import your digital scans, then either link
-  each scan to a frame from a dropdown or **auto-assign in order** (scan 1 →
-  frame 1 …). Thumbnails show which frames are done.
-- **Export the bridge**:
-  - `*.xmp` **sidecars** next to every scan — read natively by Lightroom
-    Classic and Capture One (works for TIFF/DNG/RAW too).
-  - **Embedded EXIF** for JPEG scans — camera, lens, aperture, shutter, ISO,
-    date and GPS show up directly in Explorer/Finder, no sidecar needed.
-  - `metadata.csv` and a `READ-ME.txt` with import steps, all zipped up.
-- **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
-  (one-per-page, or 2×A6 imposed on A4 to fold into a booklet), optionally
-  pre-filled with a camera and film. Print or save straight from the app.
+- 📷 **Gear library** — cameras, lenses and film stocks (popular stocks as
+  one-tap presets).
+- 🎬 **Rolls & frames** — create a roll (camera + film + frame count) and it
+  pre-creates one frame per exposure. Log each with quick-pick aperture and
+  shutter scales, weather chips, lens, subject, keywords, date and GPS.
+- 🖐️ **Capture the log page** — photograph your handwritten sheet with the
+  device camera and keep it on-screen while you transcribe.
+- 🔗 **Assign scans intuitively** — import your scans, then **auto-assign in
+  order** (scan 1 → frame 1 …) or link each by hand. Thumbnails show progress.
+- ⤓ **Export the bridge** — XMP sidecars, embedded EXIF for JPEGs, a CSV and a
+  READ-ME, zipped up.
+- 🖨️ **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
+  to carry with your camera.
 
-Everything is **local-first** — your data lives in the app's storage on your
-device; nothing is uploaded.
+Everything is **local-first** — your data lives on your device; nothing is
+uploaded.
 
----
+## Screenshots
+
+| Overview | Roll workspace |
+|---|---|
+| ![Overview](docs/screenshots/dashboard.png) | ![Workspace](docs/screenshots/workspace.png) |
+
+| Film stocks | Print DIN A6 booklet | Mobile |
+|---|---|---|
+| ![Films](docs/screenshots/films.png) | ![Booklet](docs/screenshots/booklet.png) | <img src="docs/screenshots/mobile.png" width="240" alt="Mobile"> |
 
 ## How your notes map to metadata
 
@@ -69,16 +90,12 @@ device; nothing is uploaded.
 
 The flattening rules live in one place: [`src/core/mapping.ts`](src/core/mapping.ts).
 
-### Importing the export
-
+**Importing the export**
 - **Lightroom Classic** — put the `.xmp` files next to their scans, then
-  *Metadata ▸ Read Metadata from File* (or just import the folder fresh).
-- **Capture One** — reads sidecars on import; for already-imported images,
+  *Metadata ▸ Read Metadata from File* (or import the folder fresh).
+- **Capture One** — reads sidecars on import; for imported images,
   *Image ▸ Metadata ▸ Load*.
-- **Explorer / Finder** — use the JPEGs under `scans/`; the metadata is inside
-  the file.
-
----
+- **Explorer / Finder** — use the JPEGs under `scans/`; metadata is inside them.
 
 ## Run it
 
@@ -91,16 +108,16 @@ npm test           # unit tests (mapping, XMP, EXIF round-trip, ZIP, booklet)
 
 ## Build the native apps
 
-The web app in `dist/` is wrapped natively by two well-supported toolchains.
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for details.
+The web app in `dist/` is wrapped natively by two toolchains — see
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 **Desktop — Windows & macOS (Tauri 2):** config in `src-tauri/`.
 
 ```bash
 npm install -D @tauri-apps/cli
-npx tauri icon path/to/logo.png   # generate app icons once
-npx tauri dev                     # run the desktop app
-npx tauri build                   # produce .dmg / .msi / .exe installers
+npx tauri icon path/to/logo.png
+npx tauri dev            # run the desktop app
+npx tauri build          # .dmg / .msi / .exe installers
 ```
 
 **Mobile — iOS & Android (Capacitor):** config in `capacitor.config.ts`.
@@ -110,22 +127,67 @@ npm install @capacitor/core @capacitor/camera && npm install -D @capacitor/cli
 npm run build
 npx cap add ios && npx cap add android
 npx cap sync
-npx cap open ios       # Xcode  → run/sign for iPhone & iPad
-npx cap open android   # Android Studio → run/sign for Android
+npx cap open ios | android   # run & sign in Xcode / Android Studio
 ```
 
----
+## How it compares
+
+There's a lively field of film-log apps. Here's an honest read of where we sit
+and what they do that we don't yet.
+
+| Capability | Analog Metadata | Frames | Pellica | EXIF Notes | Typical iOS logbooks |
+|---|:---:|:---:|:---:|:---:|:---:|
+| XMP sidecars (Lightroom **+** Capture One) | ✅ | ✅ | – | via ExifTool | rare |
+| Embed EXIF into JPEG scans | ✅ | ✅ (also TIFF/DNG on Mac) | – | via ExifTool | rare |
+| **Windows + macOS desktop app** | ✅ | Mac only | – | – | – |
+| iOS + Android | ✅ (one codebase) | iOS | ✅ | Android | mostly iOS |
+| **Print your own DIN A6 log booklets** | ✅ | – | – | – | – |
+| Local-first / no account | ✅ | ✅ | partial | ✅ | varies |
+| Built-in light meter | ❌ | – | ✅ | – | ✅ |
+| Auto GPS + weather capture | ❌ (manual) | – | ✅ | partial | some |
+| DX / barcode frame decoding | ❌ | – | ✅ | – | – |
+| Cloud sync across devices | ❌ | iCloud | Pro | – | iCloud |
+| Lab directory | ❌ | – | ✅ (1200+) | – | some |
+
+**Where we already win:** true four-platform reach from a single codebase
+(most rivals are iOS-only or mobile-only), a real Windows/macOS desktop app,
+metadata that *both* Lightroom and Capture One read, and printable A6 booklets
+that tie the paper and digital sides together.
+
+### Roadmap — features worth adding
+
+Prioritised from the competitive scan (see the research write-up in
+[`docs/COMPARISON.md`](docs/COMPARISON.md)):
+
+1. **Cloud / multi-device sync** — log on the phone, export on the desktop.
+   (Local-first today; sync is the most-requested gap.)
+2. **Wireless phone ⇆ desktop pairing** — QR handshake so a phone pushes its
+   log-page photo straight into an open desktop session (no cable). The data
+   model and export already support it; only the transport is missing.
+3. **Built-in light meter** — meter with the phone camera and write the reading
+   straight onto the frame.
+4. **Auto GPS + weather** — capture location and conditions in the background
+   while shooting, with reverse-geocoded place names.
+5. **Write EXIF into TIFF / DNG directly** — bundle ExifTool in the Tauri
+   desktop build so any scan format gets embedded metadata, not just JPEG.
+6. **DX / edge-barcode decoding** — photograph the film rebate to auto-order
+   and auto-assign frames.
+7. **Printed-booklet QR tie-in** — stamp each printed A6 sheet with a QR code
+   that re-links it to its roll when you photograph it back in.
+8. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity-failure
+   and development timers.
+9. **Stats & insights** — most-used film, camera and aperture; rolls over time.
+10. **Import/round-trip** — read CSV/JSON exports from other logs and Lightroom.
 
 ## Tech
 
-React + TypeScript + Vite · Dexie (IndexedDB) for local storage · pdf-lib for
-the booklet PDFs · piexifjs for EXIF embedding · a hand-rolled XMP writer for
-Lightroom/Capture One interop · Tauri 2 (desktop) + Capacitor (mobile) shells.
+React + TypeScript + Vite · Dexie (IndexedDB) · pdf-lib (booklet PDFs) ·
+piexifjs (EXIF embedding) · a hand-rolled XMP writer for Lightroom/Capture One
+interop · Tauri 2 (desktop) + Capacitor (mobile) shells.
 
 ## Status
 
-Core is implemented and tested end-to-end (unit tests + a real-browser smoke of
-the full add-gear → log-roll → assign → export/booklet flow). The device-camera
-capture uses the platform camera on mobile and a file/webcam picker on desktop.
-See `docs/ARCHITECTURE.md` for what's next (e.g. LAN pairing to push phone-shot
-log photos to a desktop session).
+Core is implemented and tested end-to-end — **22 unit tests** (parsing, XMP,
+EXIF write→read round-trip, ZIP bundle, booklet PDF) plus a real-browser smoke
+of the full **add-gear → log-roll → assign → export/booklet** flow. The
+screenshots above are captured headlessly from that build.
