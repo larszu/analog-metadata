@@ -60,7 +60,6 @@ Metadata should learn from them. Sources are linked at the bottom.
 
 The most-praised competitor features and the most-requested gaps have shipped:
 
-- ✅ **Built-in light meter** (scene presets + camera assist + exposure table)
 - ✅ **Fast one-tap logging** (copy previous frame, bulk apply-to-empty)
 - ✅ **Large film-stock preset library** (45+)
 - ✅ **Full JSON backup & restore** (the loudest "please add export" complaint)

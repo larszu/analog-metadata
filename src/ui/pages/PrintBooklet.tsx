@@ -70,7 +70,7 @@ export function PrintBooklet() {
         </div>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: "minmax(280px, 360px) 1fr", alignItems: "start", gap: 20 }}>
+      <div className="split">
         <div className="card">
           <Field label="Sheet title">
             <input value={opts.title ?? ""} onChange={(e) => setOpts({ ...opts, title: e.target.value })} />

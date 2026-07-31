@@ -50,8 +50,6 @@ already understand.
   shutter scales, weather chips, lens, subject, keywords, date and GPS.
 - ⚡ **Fast logging** — **copy the previous frame's** settings in one tap, or
   **apply one frame's exposure to every empty frame** at once.
-- 📸 **Built-in light meter** — pick a lighting scene (or meter with the camera)
-  and read a shutter speed for every aperture at your film speed. Tap to copy.
 - 📍 **Location + retroactive weather** — the analog frame has no GPS or
   timestamp, so you type the place and the date & time; the app geocodes the
   place name to coordinates and fills the **historical** weather for that exact
@@ -82,13 +80,13 @@ uploaded.
 |---|---|
 | ![Overview](docs/screenshots/dashboard.png) | ![Workspace](docs/screenshots/workspace.png) |
 
-| Built-in light meter | Insights |
+| Insights | Pair phone ⇆ desktop (WebRTC + QR) |
 |---|---|
-| ![Light meter](docs/screenshots/meter.png) | ![Insights](docs/screenshots/stats.png) |
+| ![Insights](docs/screenshots/stats.png) | ![Pair devices](docs/screenshots/pair.png) |
 
-| Pair phone ⇆ desktop (WebRTC + QR) | Cloud sync & backup |
+| Cloud sync & backup | Responsive on mobile |
 |---|---|
-| ![Pair devices](docs/screenshots/pair.png) | ![Settings & sync](docs/screenshots/settings.png) |
+| ![Settings & sync](docs/screenshots/settings.png) | <img src="docs/screenshots/mobile-drawer.png" width="240" alt="Mobile drawer"> |
 
 | Film stocks | Print DIN A6 booklet | Mobile |
 |---|---|---|
@@ -167,7 +165,6 @@ and what they do that we don't yet.
 | iOS + Android | ✅ (one codebase) | iOS | ✅ | Android | mostly iOS |
 | **Print your own DIN A6 log booklets** | ✅ | – | – | – | – |
 | Local-first / no account | ✅ | ✅ | partial | ✅ | varies |
-| Built-in light meter | ✅ | – | ✅ | – | ✅ |
 | Fast logging (copy / bulk-apply) | ✅ | ✅ | ✅ | – | some |
 | Full JSON backup & restore | ✅ | – | – | – | rare |
 | Global search & insights | ✅ | partial | ✅ | – | some |
@@ -180,16 +177,15 @@ and what they do that we don't yet.
 
 **Where we already win:** true four-platform reach from a single codebase
 (most rivals are iOS-only or mobile-only), a real Windows/macOS desktop app,
-metadata that *both* Lightroom and Capture One read, a built-in light meter,
-cloud sync **and** cable-free device pairing, and printable A6 booklets that
-tie the paper and digital sides together.
+metadata that *both* Lightroom and Capture One read, cloud sync **and**
+cable-free device pairing, and printable A6 booklets that tie the paper and
+digital sides together.
 
 ### Recently shipped
 
 Driven by user reviews of the competitors (see
 [`docs/COMPARISON.md`](docs/COMPARISON.md)):
 
-- ✅ **Built-in light meter** — scene presets + camera assist + exposure table
 - ✅ **Fast logging** — copy-previous-frame and bulk apply-to-empty
 - ✅ **45+ film-stock preset library**
 - ✅ **Full JSON backup & restore** (the #1 "please add export" request)
@@ -220,12 +216,14 @@ Open-Meteo geocoding + historical-weather APIs · Tauri 2 (desktop) + Capacitor
 
 ## Status
 
-Core is implemented and tested end-to-end — **68 unit tests** (parsing, XMP,
-EXIF write→read round-trip, ZIP bundle, booklet PDF, exposure maths, backup +
-last-write-wins sync merge, search, stats, weather mapping and pairing
+Core is implemented and tested end-to-end — **63 unit tests** (parsing, XMP,
+EXIF write→read round-trip, ZIP bundle, booklet PDF, backup + last-write-wins
+sync merge, search, stats, weather geocoding/historical lookup and pairing
 chunk/transfer) plus a real-browser smoke that seeds a library, generates a live
-WebRTC pairing offer/QR and exercises meter, search, insights and sync. The
-screenshots above are captured headlessly from that build.
+WebRTC pairing offer/QR and exercises search, insights and sync. The UI is fully
+responsive — verified at 390/768/1440 px with no horizontal overflow on any
+screen, and a slide-out drawer on mobile. Screenshots above are captured
+headlessly from that build.
 
 **Beta:** device pairing and cloud sync work but are new — pairing needs both
 devices on the same network and does a two-step QR/paste handshake; one-tap
