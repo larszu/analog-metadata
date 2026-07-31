@@ -52,8 +52,10 @@ already understand.
   **apply one frame's exposure to every empty frame** at once.
 - 📸 **Built-in light meter** — pick a lighting scene (or meter with the camera)
   and read a shutter speed for every aperture at your film speed. Tap to copy.
-- 📍 **Auto GPS + weather** — one tap fills the frame's location, place name and
-  weather conditions from your device (via free, keyless services).
+- 📍 **Location + retroactive weather** — the analog frame has no GPS or
+  timestamp, so you type the place and the date & time; the app geocodes the
+  place name to coordinates and fills the **historical** weather for that exact
+  moment (via free, keyless services).
 - 🖐️ **Capture the log page** — photograph your handwritten sheet with the
   device camera and keep it on-screen while you transcribe.
 - 🔗 **Pair phone ⇆ desktop** — beam a log-page photo from your phone straight
@@ -170,7 +172,7 @@ and what they do that we don't yet.
 | Full JSON backup & restore | ✅ | – | – | – | rare |
 | Global search & insights | ✅ | partial | ✅ | – | some |
 | Large film-stock preset library | ✅ (45+) | ✅ (200+) | ✅ | – | some |
-| Auto GPS + weather capture | ✅ | – | ✅ | partial | some |
+| Retroactive weather (place + date/time) | ✅ | – | live only | – | – |
 | Cloud sync across devices | ✅ (file-based) | iCloud | Pro | – | iCloud |
 | **Wireless device pairing, no cloud** | ✅ (WebRTC+QR) | – | – | – | – |
 | DX / barcode frame decoding | ❌ | – | ✅ | – | – |
@@ -195,7 +197,8 @@ Driven by user reviews of the competitors (see
 - ✅ **Insights** — most-used films, cameras, lenses and apertures
 - ✅ **Cloud sync** — merge a JSON file kept in any synced drive (last-write-wins)
 - ✅ **Wireless phone ⇆ desktop pairing** — WebRTC + QR, no cloud, no cable
-- ✅ **Auto GPS + weather** — one-tap location, place name and conditions
+- ✅ **Manual location + retroactive weather** — geocode a place name, then fill
+  the historical weather for the frame's own date & time
 
 ### Still on the roadmap
 
@@ -212,7 +215,7 @@ Driven by user reviews of the competitors (see
 React + TypeScript + Vite · Dexie (IndexedDB) · pdf-lib (booklet PDFs) ·
 piexifjs (EXIF embedding) · a hand-rolled XMP writer for Lightroom/Capture One
 interop · WebRTC + qrcode/jsQR for pairing · File System Access API for sync ·
-Open-Meteo + BigDataCloud for weather/geocoding · Tauri 2 (desktop) + Capacitor
+Open-Meteo geocoding + historical-weather APIs · Tauri 2 (desktop) + Capacitor
 (mobile) shells.
 
 ## Status
@@ -227,5 +230,7 @@ screenshots above are captured headlessly from that build.
 **Beta:** device pairing and cloud sync work but are new — pairing needs both
 devices on the same network and does a two-step QR/paste handshake; one-tap
 cloud sync needs the File System Access API (Chromium desktop / the desktop app)
-and falls back to export + merge-import elsewhere. GPS/weather use the device
-location and free keyless services (Open-Meteo, BigDataCloud).
+and falls back to export + merge-import elsewhere. Location is entered by hand
+(or geocoded from a place name) and the weather is looked up retroactively for
+the frame's own place, date and time via Open-Meteo — never the device's
+current position, which an analog frame doesn't have.

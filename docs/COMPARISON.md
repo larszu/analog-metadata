@@ -69,8 +69,11 @@ The most-praised competitor features and the most-requested gaps have shipped:
 - ✅ **Cloud sync** — merge a JSON file in any synced drive (last-write-wins)
 - ✅ **Wireless phone ⇆ desktop pairing** — WebRTC data channel + QR handshake,
   no server, no cable; sends a log-page photo phone→desktop
-- ✅ **Auto GPS + weather** — device location + Open-Meteo conditions +
-  BigDataCloud reverse-geocoded place name, one tap
+- ✅ **Manual location + retroactive weather** — an analog frame has no GPS or
+  timestamp, so the photographer types the place and date/time; the app
+  forward-geocodes the place name (Open-Meteo) and looks up the *historical*
+  weather for that exact moment. (Rivals only meter the *current* device
+  location/weather, which is wrong for film scanned later.)
 
 ## Still prioritised
 

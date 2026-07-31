@@ -1,11 +1,15 @@
 /**
- * Weather + reverse-geocoding helpers for the "auto GPS + weather" capture.
- * The network calls live in data/geo.ts; here is only the pure mapping and
- * response parsing, so the interesting logic is unit-testable.
+ * Weather + geocoding helpers for retroactively filling a frame's conditions.
  *
- * Weather comes from Open-Meteo (free, no key, CORS-enabled) whose current
- * conditions use WMO weather codes. Reverse geocoding uses BigDataCloud's free
- * client endpoint.
+ * An analog frame carries no GPS or timestamp — the photographer knows *where*
+ * and *when* it was shot and types that in. So the flow is:
+ *   1. manual location  →  forward-geocode a place name to coordinates
+ *   2. coordinates + the frame's date & time  →  look up the *historical*
+ *      weather for that moment.
+ *
+ * Data comes from Open-Meteo (free, no key, CORS): a geocoding endpoint and the
+ * archive/forecast endpoints for past hourly conditions. The network calls live
+ * in data/geo.ts; the pure mapping and parsing here are unit-tested.
  */
 import type { Weather } from "../domain/types";
 
@@ -30,32 +34,74 @@ export interface CurrentWeather {
   isDay: boolean;
 }
 
-export function openMeteoUrl(lat: number, lon: number): string {
-  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day`;
+// --- Forward geocoding (place name -> coordinates) --------------------------
+
+export interface GeoPlace {
+  lat: number;
+  lon: number;
+  place?: string;
 }
 
-export function reverseGeocodeUrl(lat: number, lon: number): string {
-  return `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+export function geocodeUrl(name: string): string {
+  return `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+    name,
+  )}&count=1&language=en&format=json`;
 }
 
-export function parseOpenMeteo(json: unknown): CurrentWeather {
-  const cur = (json as { current?: Record<string, unknown> })?.current ?? {};
-  const code = Number(cur.weather_code ?? 0);
-  const isDay = Number(cur.is_day ?? 1) !== 0;
-  const temp = cur.temperature_2m;
+export function parseGeocode(json: unknown): GeoPlace | undefined {
+  const r = (json as { results?: Record<string, unknown>[] })?.results?.[0];
+  if (!r || typeof r.latitude !== "number" || typeof r.longitude !== "number") return undefined;
+  const place = [r.name, r.country].filter((p): p is string => Boolean(p)).join(", ");
+  return { lat: r.latitude, lon: r.longitude, place: place || undefined };
+}
+
+// --- Historical weather (coords + date/time -> conditions) ------------------
+
+/** Whole days from `date` to `today` (positive = in the past). */
+export function daysAgo(dateYMD: string, today = new Date()): number {
+  const target = new Date(`${dateYMD}T12:00:00`);
+  return Math.floor((today.getTime() - target.getTime()) / 86_400_000);
+}
+
+/**
+ * Open-Meteo split: the archive API holds settled history (~5+ days old); the
+ * forecast API covers the recent past and near future. Both return the same
+ * hourly shape, so the parser doesn't care which one answered.
+ */
+export function historicalWeatherUrl(lat: number, lon: number, dateYMD: string, today = new Date()): string {
+  const base =
+    daysAgo(dateYMD, today) > 5
+      ? "https://archive-api.open-meteo.com/v1/archive"
+      : "https://api.open-meteo.com/v1/forecast";
+  return `${base}?latitude=${lat}&longitude=${lon}&start_date=${dateYMD}&end_date=${dateYMD}&hourly=weather_code,temperature_2m&timezone=auto`;
+}
+
+/**
+ * Split a stored date/time into the day and an "YYYY-MM-DDTHH" hour prefix used
+ * to match Open-Meteo's local hourly timestamps. Accepts a plain date, a local
+ * datetime ("2026-05-01T14:30") or an ISO string; missing time defaults to noon.
+ */
+export function localHourPrefix(dateTime: string): { date: string; prefix: string } | undefined {
+  const m = dateTime.match(/^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}):\d{2})?/);
+  if (!m) return undefined;
+  const date = m[1];
+  const hh = m[2] ?? "12";
+  return { date, prefix: `${date}T${hh}` };
+}
+
+export function parseHistoricalWeather(json: unknown, hourPrefix: string): CurrentWeather | undefined {
+  const h = (json as { hourly?: { time?: string[]; weather_code?: number[]; temperature_2m?: number[] } })?.hourly;
+  if (!h?.time?.length || !h.weather_code) return undefined;
+  let idx = h.time.findIndex((t) => t.startsWith(hourPrefix));
+  if (idx < 0) idx = Math.min(12, h.time.length - 1); // fall back to midday
+  const code = Number(h.weather_code[idx] ?? 0);
+  const temp = h.temperature_2m?.[idx];
+  const hour = Number(hourPrefix.slice(11, 13));
+  const isDay = hour >= 7 && hour < 20;
   return {
     weather: wmoToWeather(code, isDay),
     code,
     temperatureC: typeof temp === "number" ? temp : undefined,
     isDay,
   };
-}
-
-/** Build a human place label like "Hamburg, Germany" from a reverse-geocode. */
-export function parseReverseGeocode(json: unknown): string | undefined {
-  const j = json as Record<string, unknown>;
-  const city = (j?.city || j?.locality || j?.principalSubdivision) as string | undefined;
-  const country = j?.countryName as string | undefined;
-  const parts = [city, country].filter((p): p is string => Boolean(p && p.trim()));
-  return parts.length ? parts.join(", ") : undefined;
 }

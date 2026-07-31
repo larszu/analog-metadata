@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { updateFrame } from "../../data/repo";
-import { captureGeoWeather } from "../../data/geo";
+import { geocodePlace, lookupHistoricalWeather } from "../../data/geo";
 import type { Frame, Lens, Roll, Weather } from "../../domain/types";
 import { APERTURE_SCALE, SHUTTER_SPEEDS, WEATHER_OPTIONS } from "../../domain/constants";
 import { Field, ChipGroup, ChipPick, useToast } from "../components";
@@ -28,7 +28,8 @@ export function FrameEditor({
   prevFrame?: Frame;
 }) {
   const [f, setF] = useState<Frame>(frame);
-  const [locating, setLocating] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [fetchingWx, setFetchingWx] = useState(false);
   const toast = useToast();
 
   // Persist a patch and mirror it locally so inputs stay responsive.
@@ -37,29 +38,47 @@ export function FrameEditor({
     void updateFrame(frame.id, p);
   };
 
-  // Auto-fill GPS, place name and weather from the device + free web services.
-  const autoLocate = async () => {
-    setLocating(true);
+  // Turn the manually-typed place name into coordinates for this frame.
+  const findCoordinates = async () => {
+    if (!f.location?.trim()) return toast("Type a location first");
+    setGeocoding(true);
     try {
-      const g = await captureGeoWeather();
-      const weather =
-        g.weather && !(f.weather ?? []).includes(g.weather)
-          ? [...(f.weather ?? []), g.weather]
-          : f.weather;
-      patch({
-        gps: { lat: g.lat, lon: g.lon, alt: g.alt },
-        location: g.place ?? f.location,
-        weather,
-      });
+      const g = await geocodePlace(f.location);
+      patch({ gps: { lat: g.lat, lon: g.lon }, location: g.place ?? f.location });
+      toast(`Found ${g.place ?? "coordinates"}`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't geocode");
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
+  // Retroactively fill the weather from the frame's place + date & time.
+  const lookUpWeather = async () => {
+    if (!f.dateTaken) return toast("Set the date & time first");
+    setFetchingWx(true);
+    try {
+      let lat = f.gps?.lat;
+      let lon = f.gps?.lon;
+      if (lat === undefined || lon === undefined) {
+        if (!f.location?.trim()) return toast("Add a location (or its GPS) first");
+        const g = await geocodePlace(f.location);
+        lat = g.lat;
+        lon = g.lon;
+        patch({ gps: { lat, lon }, location: g.place ?? f.location });
+      }
+      const wx = await lookupHistoricalWeather(lat, lon, f.dateTaken);
+      const weather = (f.weather ?? []).includes(wx.weather)
+        ? f.weather
+        : [...(f.weather ?? []), wx.weather];
+      patch({ weather });
       toast(
-        `Located${g.place ? ` · ${g.place}` : ""}${
-          g.temperatureC !== undefined ? ` · ${Math.round(g.temperatureC)}°C` : ""
-        }`,
+        `Weather: ${wx.weather}${wx.temperatureC !== undefined ? ` · ${Math.round(wx.temperatureC)}°C` : ""}`,
       );
     } catch (e) {
-      toast(e instanceof Error ? e.message : "Couldn't get location");
+      toast(e instanceof Error ? e.message : "Couldn't fetch weather");
     } finally {
-      setLocating(false);
+      setFetchingWx(false);
     }
   };
 
@@ -75,7 +94,8 @@ export function FrameEditor({
     });
   };
 
-  const dateValue = f.dateTaken ? f.dateTaken.slice(0, 10) : "";
+  // datetime-local wants "YYYY-MM-DDTHH:mm"; tolerate older date-only values.
+  const dateValue = f.dateTaken ? f.dateTaken.slice(0, 16) : "";
 
   return (
     <div className="card">
@@ -144,6 +164,34 @@ export function FrameEditor({
         <ChipPick options={SHUTTER_SPEEDS} value={f.shutterSpeed} onChange={(v) => patch({ shutterSpeed: v })} />
       </Field>
 
+      <div className="field-row">
+        <Field label="Date &amp; time taken">
+          <input
+            type="datetime-local"
+            value={dateValue}
+            onChange={(e) => patch({ dateTaken: e.target.value ? `${e.target.value}:00` : undefined })}
+          />
+        </Field>
+        <Field label="Location (place)">
+          <input value={f.location ?? ""} onChange={(e) => patch({ location: e.target.value })} placeholder="Hamburg, Speicherstadt" />
+        </Field>
+      </div>
+
+      <div className="row" style={{ gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <button className="btn sm" onClick={findCoordinates} disabled={geocoding}
+          title="Look up GPS coordinates for the place name you typed">
+          {geocoding ? "🔎 Finding…" : "🔎 Find coordinates"}
+        </button>
+        <button className="btn sm" onClick={lookUpWeather} disabled={fetchingWx}
+          title="Fill the weather from this frame's place, date and time">
+          {fetchingWx ? "🌤 Fetching…" : "🌤 Weather for this place & time"}
+        </button>
+      </div>
+      <p className="hint" style={{ marginTop: -4, marginBottom: 12 }}>
+        The frame's location and time are yours to enter — the analog photo has none. Given a place and a
+        date &amp; time, the weather can be filled in retroactively from historical records.
+      </p>
+
       <Field label="Weather">
         <ChipGroup<Weather>
           options={WEATHER_OPTIONS}
@@ -152,19 +200,6 @@ export function FrameEditor({
         />
       </Field>
 
-      <div className="field-row">
-        <Field label="Date taken">
-          <input
-            type="date"
-            value={dateValue}
-            onChange={(e) => patch({ dateTaken: e.target.value ? new Date(e.target.value).toISOString() : undefined })}
-          />
-        </Field>
-        <Field label="Location (place)">
-          <input value={f.location ?? ""} onChange={(e) => patch({ location: e.target.value })} placeholder="Hamburg, Speicherstadt" />
-        </Field>
-      </div>
-
       <Field label="Keywords (comma separated)">
         <input
           value={(f.keywords ?? []).join(", ")}
@@ -172,13 +207,6 @@ export function FrameEditor({
           placeholder="architecture, dusk, long exposure"
         />
       </Field>
-
-      <div className="row" style={{ marginBottom: 10 }}>
-        <button className="btn sm" onClick={autoLocate} disabled={locating}
-          title="Fill GPS, place name and weather from your current location">
-          {locating ? "📍 Locating…" : "📍 GPS + weather"}
-        </button>
-      </div>
 
       <div className="field-row">
         <Field label="GPS latitude">
