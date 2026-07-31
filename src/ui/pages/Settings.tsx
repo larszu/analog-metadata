@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { getSettings, saveSettings } from "../../data/db";
 import { exportAllData, importAllData } from "../../data/backup";
+import {
+  connectSyncFile,
+  disconnectSyncFile,
+  fileSyncSupported,
+  getLastSyncedAt,
+  getSyncFileName,
+  syncNow,
+} from "../../data/sync";
 import { backupSummary, readBackup } from "../../core/backup";
 import type { Settings } from "../../domain/types";
 import { Field, useToast } from "../components";
@@ -10,9 +18,49 @@ export function SettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const importInput = useRef<HTMLInputElement>(null);
 
+  const [syncFile, setSyncFile] = useState<string | undefined>();
+  const [lastSynced, setLastSynced] = useState<string | undefined>();
+  const [syncing, setSyncing] = useState(false);
+  const syncAvailable = fileSyncSupported();
+
+  const refreshSync = async () => {
+    setSyncFile(await getSyncFileName());
+    setLastSynced(await getLastSyncedAt());
+  };
+
   useEffect(() => {
     getSettings().then(setSettings);
+    refreshSync();
   }, []);
+
+  const connect = async (mode: "create" | "open") => {
+    try {
+      await connectSyncFile(mode);
+      await refreshSync();
+      toast("Sync file connected");
+    } catch (e) {
+      if ((e as Error)?.name !== "AbortError") toast(e instanceof Error ? e.message : "Couldn't connect");
+    }
+  };
+
+  const doSync = async () => {
+    setSyncing(true);
+    try {
+      const { changed, fileName } = await syncNow();
+      await refreshSync();
+      toast(changed > 0 ? `Synced ${fileName}: ${changed} updated` : `Synced ${fileName}: already up to date`);
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const disconnect = async () => {
+    await disconnectSyncFile();
+    await refreshSync();
+    toast("Sync file disconnected");
+  };
 
   const doExport = async () => {
     const json = await exportAllData();
@@ -86,6 +134,45 @@ export function SettingsPage() {
           <input ref={importInput} type="file" accept="application/json,.json" hidden
             onChange={(e) => { doImport(e.target.files?.[0]); e.target.value = ""; }} />
         </div>
+      </div>
+
+      <div className="card" style={{ maxWidth: 560, marginTop: 16 }}>
+        <h3>Cloud sync <span className="badge warn">beta</span></h3>
+        <p className="hint" style={{ marginTop: 0 }}>
+          Point this at one JSON file kept in a synced drive (iCloud Drive, Dropbox, Google Drive…).
+          “Sync now” merges the file with this device using last-write-wins, so several devices stay in
+          step. For device-to-device without a drive, see the <b>Pair devices</b> page.
+        </p>
+        {syncAvailable ? (
+          <>
+            <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+              {syncFile ? (
+                <>
+                  <button className="btn primary" onClick={doSync} disabled={syncing}>
+                    {syncing ? "⟳ Syncing…" : "⟳ Sync now"}
+                  </button>
+                  <button className="btn ghost" onClick={disconnect}>Disconnect</button>
+                </>
+              ) : (
+                <>
+                  <button className="btn" onClick={() => connect("create")}>＋ Create sync file</button>
+                  <button className="btn" onClick={() => connect("open")}>📂 Use existing file</button>
+                </>
+              )}
+            </div>
+            {syncFile && (
+              <p className="hint" style={{ marginTop: 8 }}>
+                File: <b>{syncFile}</b>{lastSynced ? ` · last synced ${new Date(lastSynced).toLocaleString()}` : " · not synced yet"}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="hint">
+            One-tap sync needs the File System Access API (Chromium desktop / the desktop app). On this
+            browser, use <b>Export backup</b> into your synced drive and <b>Import backup ▸ merge</b> on the
+            other device — same last-write-wins merge.
+          </p>
+        )}
       </div>
 
       <div className="card" style={{ maxWidth: 560, marginTop: 16 }}>

@@ -11,6 +11,7 @@ const NAV = [
   { sep: true },
   { to: "/meter", icon: "📸", label: "Light meter" },
   { to: "/stats", icon: "📊", label: "Insights" },
+  { to: "/pair", icon: "🔗", label: "Pair devices" },
   { to: "/print", icon: "🖨️", label: "Print booklet" },
   { to: "/settings", icon: "⚙️", label: "Settings" },
 ] as const;

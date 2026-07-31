@@ -11,6 +11,7 @@ import { RollWorkspace } from "./ui/pages/RollWorkspace";
 import { LightMeter } from "./ui/pages/LightMeter";
 import { Search } from "./ui/pages/Search";
 import { Stats } from "./ui/pages/Stats";
+import { Pair } from "./ui/pages/Pair";
 import { PrintBooklet } from "./ui/pages/PrintBooklet";
 import { SettingsPage } from "./ui/pages/Settings";
 import { ToastProvider } from "./ui/components";
@@ -33,6 +34,7 @@ const router = createHashRouter([
       { path: "meter", element: <LightMeter /> },
       { path: "search", element: <Search /> },
       { path: "stats", element: <Stats /> },
+      { path: "pair", element: <Pair /> },
       { path: "print", element: <PrintBooklet /> },
       { path: "settings", element: <SettingsPage /> },
     ],

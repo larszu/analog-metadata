@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { updateFrame } from "../../data/repo";
+import { captureGeoWeather } from "../../data/geo";
 import type { Frame, Lens, Roll, Weather } from "../../domain/types";
 import { APERTURE_SCALE, SHUTTER_SPEEDS, WEATHER_OPTIONS } from "../../domain/constants";
-import { Field, ChipGroup, ChipPick } from "../components";
+import { Field, ChipGroup, ChipPick, useToast } from "../components";
 
 export interface ScanEntry {
   name: string;
@@ -27,11 +28,39 @@ export function FrameEditor({
   prevFrame?: Frame;
 }) {
   const [f, setF] = useState<Frame>(frame);
+  const [locating, setLocating] = useState(false);
+  const toast = useToast();
 
   // Persist a patch and mirror it locally so inputs stay responsive.
   const patch = (p: Partial<Frame>) => {
     setF((prev) => ({ ...prev, ...p }));
     void updateFrame(frame.id, p);
+  };
+
+  // Auto-fill GPS, place name and weather from the device + free web services.
+  const autoLocate = async () => {
+    setLocating(true);
+    try {
+      const g = await captureGeoWeather();
+      const weather =
+        g.weather && !(f.weather ?? []).includes(g.weather)
+          ? [...(f.weather ?? []), g.weather]
+          : f.weather;
+      patch({
+        gps: { lat: g.lat, lon: g.lon, alt: g.alt },
+        location: g.place ?? f.location,
+        weather,
+      });
+      toast(
+        `Located${g.place ? ` · ${g.place}` : ""}${
+          g.temperatureC !== undefined ? ` · ${Math.round(g.temperatureC)}°C` : ""
+        }`,
+      );
+    } catch (e) {
+      toast(e instanceof Error ? e.message : "Couldn't get location");
+    } finally {
+      setLocating(false);
+    }
   };
 
   // One-tap: carry the previous frame's shooting settings onto this one.
@@ -143,6 +172,13 @@ export function FrameEditor({
           placeholder="architecture, dusk, long exposure"
         />
       </Field>
+
+      <div className="row" style={{ marginBottom: 10 }}>
+        <button className="btn sm" onClick={autoLocate} disabled={locating}
+          title="Fill GPS, place name and weather from your current location">
+          {locating ? "📍 Locating…" : "📍 GPS + weather"}
+        </button>
+      </div>
 
       <div className="field-row">
         <Field label="GPS latitude">
