@@ -21,6 +21,8 @@ export class AnalogDb extends Dexie {
   rolls!: Table<Roll, Id>;
   frames!: Table<Frame, Id>;
   settings!: Table<Settings, string>;
+  /** Arbitrary key/value store (e.g. the connected sync-file handle). */
+  meta!: Table<{ key: string; value: unknown }, string>;
 
   constructor() {
     super("analog-metadata");
@@ -31,6 +33,9 @@ export class AnalogDb extends Dexie {
       rolls: "id, label, cameraId, filmStockId, updatedAt",
       frames: "id, rollId, frameNumber, updatedAt",
       settings: "id",
+    });
+    this.version(2).stores({
+      meta: "key",
     });
   }
 }

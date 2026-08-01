@@ -58,26 +58,30 @@ Metadata should learn from them. Sources are linked at the bottom.
 
 ## Implemented from this analysis
 
-The three most-praised competitor features and the three most-requested gaps
-have shipped:
+The most-praised competitor features and the most-requested gaps have shipped:
 
-- ✅ **Built-in light meter** (scene presets + camera assist + exposure table)
 - ✅ **Fast one-tap logging** (copy previous frame, bulk apply-to-empty)
 - ✅ **Large film-stock preset library** (45+)
 - ✅ **Full JSON backup & restore** (the loudest "please add export" complaint)
 - ✅ **Global search** across rolls, frames and gear
 - ✅ **Insights / stats** (most-used films, cameras, lenses, apertures)
+- ✅ **Cloud sync** — merge a JSON file in any synced drive (last-write-wins)
+- ✅ **Wireless phone ⇆ desktop pairing** — WebRTC data channel + QR handshake,
+  no server, no cable; sends a log-page photo phone→desktop
+- ✅ **Manual location + retroactive weather** — an analog frame has no GPS or
+  timestamp, so the photographer types the place and date/time; the app
+  forward-geocodes the place name (Open-Meteo) and looks up the *historical*
+  weather for that exact moment. (Rivals only meter the *current* device
+  location/weather, which is wrong for film scanned later.)
 
 ## Still prioritised
 
-1. Cloud / multi-device sync (or the pairing handshake as a lighter first step)
-2. Wireless phone ⇆ desktop pairing (QR)
-3. Auto GPS + weather with reverse geocoding
-4. Direct EXIF into TIFF/DNG via bundled ExifTool (desktop)
-5. DX / edge-barcode frame decoding
-6. Printed-booklet QR tie-in
-7. Shooting calculators (DoF/hyperfocal, reciprocity, dev timers)
-8. Import/round-trip from other logs & Lightroom
+1. Direct EXIF into TIFF/DNG via bundled ExifTool (desktop)
+2. DX / edge-barcode frame decoding
+3. Printed-booklet QR tie-in
+4. Shooting calculators (DoF/hyperfocal, reciprocity, dev timers)
+5. Real-time sync via a hosted relay (automatic multi-device)
+6. Import/round-trip from other logs & Lightroom
 
 ## Sources
 

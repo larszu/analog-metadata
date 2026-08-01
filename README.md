@@ -50,10 +50,14 @@ already understand.
   shutter scales, weather chips, lens, subject, keywords, date and GPS.
 - ⚡ **Fast logging** — **copy the previous frame's** settings in one tap, or
   **apply one frame's exposure to every empty frame** at once.
-- 📸 **Built-in light meter** — pick a lighting scene (or meter with the camera)
-  and read a shutter speed for every aperture at your film speed. Tap to copy.
+- 📍 **Location + retroactive weather** — the analog frame has no GPS or
+  timestamp, so you type the place and the date & time; the app geocodes the
+  place name to coordinates and fills the **historical** weather for that exact
+  moment (via free, keyless services).
 - 🖐️ **Capture the log page** — photograph your handwritten sheet with the
   device camera and keep it on-screen while you transcribe.
+- 🔗 **Pair phone ⇆ desktop** — beam a log-page photo from your phone straight
+  to the desktop over your local network via a QR handshake (WebRTC, no cloud).
 - 🔗 **Assign scans intuitively** — import your scans, then **auto-assign in
   order** (scan 1 → frame 1 …) or link each by hand. Thumbnails show progress.
 - 🔍 **Search & insights** — find any roll, frame or piece of gear by text, and
@@ -62,8 +66,14 @@ already understand.
   READ-ME, zipped up.
 - 💾 **Backup & restore** — export your whole library to one JSON file and
   import it on another device.
+- ☁️ **Cloud sync** — point at one JSON file in any synced drive (iCloud Drive,
+  Dropbox, Drive…); “Sync now” merges devices with last-write-wins.
 - 🖨️ **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
-  to carry with your camera.
+  to carry with your camera. Print a booklet **for a roll** and every sheet gets
+  a **QR back-link** — photograph it back in (Film rolls ▸ Scan booklet) to jump
+  straight to that roll.
+- 🌗 **Light & dark theme** and **English / German** UI, switchable in Settings
+  (theme follows the OS by default).
 
 Everything is **local-first** — your data lives on your device; nothing is
 uploaded.
@@ -74,9 +84,17 @@ uploaded.
 |---|---|
 | ![Overview](docs/screenshots/dashboard.png) | ![Workspace](docs/screenshots/workspace.png) |
 
-| Built-in light meter | Insights |
+| Insights | Pair phone ⇆ desktop (WebRTC + QR) |
 |---|---|
-| ![Light meter](docs/screenshots/meter.png) | ![Insights](docs/screenshots/stats.png) |
+| ![Insights](docs/screenshots/stats.png) | ![Pair devices](docs/screenshots/pair.png) |
+
+| Cloud sync & backup | Responsive on mobile |
+|---|---|
+| ![Settings & sync](docs/screenshots/settings.png) | <img src="docs/screenshots/mobile-drawer.png" width="240" alt="Mobile drawer"> |
+
+| Light theme | German UI (dark) |
+|---|---|
+| ![Light theme](docs/screenshots/theme-light.png) | ![German](docs/screenshots/settings-de.png) |
 
 | Film stocks | Print DIN A6 booklet | Mobile |
 |---|---|---|
@@ -142,6 +160,13 @@ npx cap sync
 npx cap open ios | android   # run & sign in Xcode / Android Studio
 ```
 
+**Automated release builds:** [`.github/workflows/release.yml`](.github/workflows/release.yml)
+builds **Windows + macOS** (Tauri), **Android** (Capacitor) and **iOS**
+(Capacitor) whenever you publish a GitHub Release, and attaches the artifacts to
+it. It runs only on `release`/manual dispatch, so it never gates pull requests.
+Desktop and the Android debug build need no secrets; store-ready Android/iOS
+signing uses repo secrets documented at the top of the workflow.
+
 ## How it compares
 
 There's a lively field of film-log apps. Here's an honest read of where we sit
@@ -155,59 +180,75 @@ and what they do that we don't yet.
 | iOS + Android | ✅ (one codebase) | iOS | ✅ | Android | mostly iOS |
 | **Print your own DIN A6 log booklets** | ✅ | – | – | – | – |
 | Local-first / no account | ✅ | ✅ | partial | ✅ | varies |
-| Built-in light meter | ✅ | – | ✅ | – | ✅ |
 | Fast logging (copy / bulk-apply) | ✅ | ✅ | ✅ | – | some |
 | Full JSON backup & restore | ✅ | – | – | – | rare |
 | Global search & insights | ✅ | partial | ✅ | – | some |
 | Large film-stock preset library | ✅ (45+) | ✅ (200+) | ✅ | – | some |
-| Auto GPS + weather capture | ❌ (manual) | – | ✅ | partial | some |
+| Retroactive weather (place + date/time) | ✅ | – | live only | – | – |
+| Cloud sync across devices | ✅ (file-based) | iCloud | Pro | – | iCloud |
+| **Wireless device pairing, no cloud** | ✅ (WebRTC+QR) | – | – | – | – |
 | DX / barcode frame decoding | ❌ | – | ✅ | – | – |
-| Cloud sync across devices | ❌ | iCloud | Pro | – | iCloud |
 | Lab directory | ❌ | – | ✅ (1200+) | – | some |
 
 **Where we already win:** true four-platform reach from a single codebase
 (most rivals are iOS-only or mobile-only), a real Windows/macOS desktop app,
-metadata that *both* Lightroom and Capture One read, a built-in light meter,
-full JSON backup/restore, and printable A6 booklets that tie the paper and
+metadata that *both* Lightroom and Capture One read, cloud sync **and**
+cable-free device pairing, and printable A6 booklets that tie the paper and
 digital sides together.
 
 ### Recently shipped
 
 Driven by user reviews of the competitors (see
-[`docs/COMPARISON.md`](docs/COMPARISON.md)) — the three most-loved competitor
-features and the three most-requested gaps:
+[`docs/COMPARISON.md`](docs/COMPARISON.md)):
 
-- ✅ **Built-in light meter** — scene presets + camera assist + exposure table
 - ✅ **Fast logging** — copy-previous-frame and bulk apply-to-empty
 - ✅ **45+ film-stock preset library**
 - ✅ **Full JSON backup & restore** (the #1 "please add export" request)
 - ✅ **Global search** across rolls, frames and gear
 - ✅ **Insights** — most-used films, cameras, lenses and apertures
+- ✅ **Cloud sync** — merge a JSON file kept in any synced drive (last-write-wins)
+- ✅ **Wireless phone ⇆ desktop pairing** — WebRTC + QR, no cloud, no cable
+- ✅ **Manual location + retroactive weather** — geocode a place name, then fill
+  the historical weather for the frame's own date & time
+- ✅ **Printed-booklet QR back-link** — a roll's log sheets carry a QR; scan it
+  back in to jump to the roll
+- ✅ **Light & dark theme** and **English / German** UI
+- ✅ **Automated release builds** for Windows, macOS, Android and iOS
 
 ### Still on the roadmap
 
-1. **Cloud / multi-device sync** — log on the phone, export on the desktop.
-2. **Wireless phone ⇆ desktop pairing** — QR handshake so a phone pushes its
-   log-page photo straight into an open desktop session (no cable).
-3. **Auto GPS + weather** — capture location and conditions while shooting,
-   with reverse-geocoded place names.
-4. **Write EXIF into TIFF / DNG directly** — bundle ExifTool in the Tauri
+1. **Write EXIF into TIFF / DNG directly** — bundle ExifTool in the Tauri
    desktop build so any scan format gets embedded metadata, not just JPEG.
-5. **DX / edge-barcode decoding** — photograph the film rebate to auto-assign.
-6. **Printed-booklet QR tie-in** — stamp each printed A6 sheet with a QR code
-   that re-links it to its roll when you photograph it back in.
-7. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity timers.
+2. **DX / edge-barcode decoding** — photograph the film rebate to auto-assign.
+3. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity timers.
+4. **Real-time sync** — a hosted relay for automatic multi-device sync.
+5. **More UI languages** beyond English & German.
 
 ## Tech
 
 React + TypeScript + Vite · Dexie (IndexedDB) · pdf-lib (booklet PDFs) ·
 piexifjs (EXIF embedding) · a hand-rolled XMP writer for Lightroom/Capture One
-interop · Tauri 2 (desktop) + Capacitor (mobile) shells.
+interop · WebRTC + qrcode/jsQR for pairing & booklet QR · File System Access API
+for sync · Open-Meteo geocoding + historical-weather APIs · CSS-variable theming
+(light/dark) · a tiny English-key i18n layer (English/German) · Tauri 2
+(desktop) + Capacitor (mobile) shells · GitHub Actions release builds.
 
 ## Status
 
-Core is implemented and tested end-to-end — **50 unit tests** (parsing, XMP,
-EXIF write→read round-trip, ZIP bundle, booklet PDF, exposure maths, backup
-round-trip, search and stats) plus a real-browser smoke of the full
-**add-gear → log-roll → assign → export/booklet → meter/search/insights** flow.
-The screenshots above are captured headlessly from that build.
+Core is implemented and tested end-to-end — **66 unit tests** (parsing, XMP,
+EXIF write→read round-trip, ZIP bundle, booklet PDF + roll-QR payload, backup +
+last-write-wins sync merge, search, stats, weather geocoding/historical lookup
+and pairing chunk/transfer) plus a real-browser smoke that seeds a library,
+generates a live WebRTC pairing offer/QR, and verifies theme switching, the
+German UI, the booklet-QR deep-link/preview and cloud-sync. The UI is fully
+responsive — verified at 390/768/1440 px with no horizontal overflow on any
+screen, and a slide-out drawer on mobile. Screenshots above are captured
+headlessly from that build.
+
+**Beta:** device pairing and cloud sync work but are new — pairing needs both
+devices on the same network and does a two-step QR/paste handshake; one-tap
+cloud sync needs the File System Access API (Chromium desktop / the desktop app)
+and falls back to export + merge-import elsewhere. Location is entered by hand
+(or geocoded from a place name) and the weather is looked up retroactively for
+the frame's own place, date and time via Open-Meteo — never the device's
+current position, which an analog frame doesn't have.

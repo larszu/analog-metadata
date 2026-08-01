@@ -8,12 +8,13 @@ import { Lenses } from "./ui/pages/Lenses";
 import { Films } from "./ui/pages/Films";
 import { Rolls } from "./ui/pages/Rolls";
 import { RollWorkspace } from "./ui/pages/RollWorkspace";
-import { LightMeter } from "./ui/pages/LightMeter";
 import { Search } from "./ui/pages/Search";
 import { Stats } from "./ui/pages/Stats";
+import { Pair } from "./ui/pages/Pair";
 import { PrintBooklet } from "./ui/pages/PrintBooklet";
 import { SettingsPage } from "./ui/pages/Settings";
 import { ToastProvider } from "./ui/components";
+import { PrefsProvider } from "./app/prefs";
 import "./styles/global.css";
 
 // Hash routing keeps deep links working from file:// origins inside the Tauri
@@ -30,9 +31,9 @@ const router = createHashRouter([
       { path: "cameras", element: <Cameras /> },
       { path: "lenses", element: <Lenses /> },
       { path: "films", element: <Films /> },
-      { path: "meter", element: <LightMeter /> },
       { path: "search", element: <Search /> },
       { path: "stats", element: <Stats /> },
+      { path: "pair", element: <Pair /> },
       { path: "print", element: <PrintBooklet /> },
       { path: "settings", element: <SettingsPage /> },
     ],
@@ -41,8 +42,10 @@ const router = createHashRouter([
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ToastProvider>
-      <RouterProvider router={router} />
-    </ToastProvider>
+    <PrefsProvider>
+      <ToastProvider>
+        <RouterProvider router={router} />
+      </ToastProvider>
+    </PrefsProvider>
   </React.StrictMode>,
 );

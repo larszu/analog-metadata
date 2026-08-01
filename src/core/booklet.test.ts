@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildBookletPdf } from "./booklet";
+import { buildBookletPdf, parseRollQr, rollQrPayload } from "./booklet";
 
 function pdfHeader(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes.slice(0, 5));
@@ -26,5 +26,20 @@ describe("buildBookletPdf", () => {
       sheets: 1,
     });
     expect(pdfHeader(bytes)).toBe("%PDF-");
+  });
+
+  it("stamps a roll back-link QR when qrData is given", async () => {
+    const bytes = await buildBookletPdf({ sheets: 2, qrData: rollQrPayload("roll-123") });
+    expect(pdfHeader(bytes)).toBe("%PDF-");
+  });
+});
+
+describe("roll QR payload", () => {
+  it("round-trips a roll id", () => {
+    expect(parseRollQr(rollQrPayload("abc-123"))).toBe("abc-123");
+  });
+  it("ignores foreign codes", () => {
+    expect(parseRollQr("https://example.com")).toBeUndefined();
+    expect(parseRollQr("analogmeta:roll:")).toBe("");
   });
 });
