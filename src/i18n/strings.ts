@@ -133,6 +133,18 @@ export const de: Record<string, string> = {
   "That roll isn't on this device": "Dieser Film ist nicht auf diesem Gerät",
   "{n} frames linked to scans": "{n} Bilder mit Scans verknüpft",
   "Log page reference": "Protokollseite (Referenz)",
+  "🔎 Recognise handwriting": "🔎 Handschrift erkennen",
+  "Reading… {pct}%": "Lese… {pct}%",
+  "OCR (beta): reads the sheet into frame suggestions you review before applying. Works best on a straight, well-lit photo with neat block capitals.":
+    "OCR (Beta): liest das Blatt in Bildvorschläge, die du vor dem Anwenden prüfst. Funktioniert am besten bei einem geraden, gut beleuchteten Foto mit sauberen Druckbuchstaben.",
+  "No text recognised — try a sharper, straighter photo": "Kein Text erkannt — versuche ein schärferes, gerades Foto",
+  "Text recognition failed on this device": "Texterkennung auf diesem Gerät fehlgeschlagen",
+  "Review recognised text": "Erkannten Text prüfen",
+  "Check each row — OCR of handwriting isn't perfect. Set a frame number for a row to apply it; leave it blank to skip.":
+    "Prüfe jede Zeile — Handschrift-OCR ist nicht perfekt. Setze eine Bildnummer, um eine Zeile anzuwenden; leer lassen zum Überspringen.",
+  "Apply to frames": "Auf Bilder anwenden",
+  "Applied OCR to {n} frames": "OCR auf {n} Bilder angewendet",
+  "Nothing to apply": "Nichts anzuwenden",
   Remove: "Entfernen",
   "Roll not found": "Film nicht gefunden",
   "Back to rolls": "Zurück zu den Filmen",

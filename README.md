@@ -56,6 +56,11 @@ already understand.
   moment (via free, keyless services).
 - 🖐️ **Capture the log page** — photograph your handwritten sheet with the
   device camera and keep it on-screen while you transcribe.
+- 🔤 **Handwriting recognition (OCR, beta)** — read the photographed sheet
+  **client-side** (Tesseract.js, no cloud) into per-frame suggestions; review
+  them in a table, then apply aperture, shutter and subject to the frames. Since
+  we print the sheet's fixed column order, tokens map to fields deterministically
+  (the first numeric is the f-stop, the next the shutter …).
 - 🔗 **Pair phone ⇆ desktop** — beam a log-page photo from your phone straight
   to the desktop over your local network via a QR handshake (WebRTC, no cloud).
 - 🔗 **Assign scans intuitively** — import your scans, then **auto-assign in
@@ -218,6 +223,8 @@ Driven by user reviews of the competitors (see
 - ✅ **Automated release builds** for Windows, macOS, Android and iOS
 - ✅ **Booklet paper sizes** (A6/A5/A4/Letter) + manual camera/film/lens entry
   with library recognition ("add to library" for new gear)
+- ✅ **Handwriting OCR (beta)** — read a photographed log sheet into reviewable
+  per-frame suggestions, fully client-side
 
 ### Still on the roadmap
 
@@ -233,13 +240,13 @@ Driven by user reviews of the competitors (see
 React + TypeScript + Vite · Dexie (IndexedDB) · pdf-lib (booklet PDFs) ·
 piexifjs (EXIF embedding) · a hand-rolled XMP writer for Lightroom/Capture One
 interop · WebRTC + qrcode/jsQR for pairing & booklet QR · File System Access API
-for sync · Open-Meteo geocoding + historical-weather APIs · CSS-variable theming
+for sync · Open-Meteo geocoding + historical-weather APIs · Tesseract.js (client-side OCR) · CSS-variable theming
 (light/dark) · a tiny English-key i18n layer (English/German) · Tauri 2
 (desktop) + Capacitor (mobile) shells · GitHub Actions release builds.
 
 ## Status
 
-Core is implemented and tested end-to-end — **68 unit tests** (parsing, XMP,
+Core is implemented and tested end-to-end — **82 unit tests** (parsing, XMP,
 EXIF write→read round-trip, ZIP bundle, booklet PDF + roll-QR payload, backup +
 last-write-wins sync merge, search, stats, weather geocoding/historical lookup
 and pairing chunk/transfer) plus a real-browser smoke that seeds a library,
