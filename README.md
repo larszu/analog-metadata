@@ -68,10 +68,12 @@ already understand.
   import it on another device.
 - ☁️ **Cloud sync** — point at one JSON file in any synced drive (iCloud Drive,
   Dropbox, Drive…); “Sync now” merges devices with last-write-wins.
-- 🖨️ **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
-  to carry with your camera. Print a booklet **for a roll** and every sheet gets
-  a **QR back-link** — photograph it back in (Film rolls ▸ Scan booklet) to jump
-  straight to that roll.
+- 🖨️ **Print your own logbook** — generate blank log sheets as a PDF at your
+  chosen **paper size** (A6 / A5 / A4 / Letter, or 2×A6 folded on A4). Type or
+  pick the **camera, film and lens** — anything new is **recognised** and can be
+  saved to your library in one tap. Print a booklet **for a roll** and every
+  sheet gets a **QR back-link** — photograph it back in (Film rolls ▸ Scan
+  booklet) to jump straight to that roll.
 - 🌗 **Light & dark theme** and **English / German** UI, switchable in Settings
   (theme follows the OS by default).
 
@@ -214,6 +216,8 @@ Driven by user reviews of the competitors (see
   back in to jump to the roll
 - ✅ **Light & dark theme** and **English / German** UI
 - ✅ **Automated release builds** for Windows, macOS, Android and iOS
+- ✅ **Booklet paper sizes** (A6/A5/A4/Letter) + manual camera/film/lens entry
+  with library recognition ("add to library" for new gear)
 
 ### Still on the roadmap
 
@@ -235,7 +239,7 @@ for sync · Open-Meteo geocoding + historical-weather APIs · CSS-variable themi
 
 ## Status
 
-Core is implemented and tested end-to-end — **66 unit tests** (parsing, XMP,
+Core is implemented and tested end-to-end — **68 unit tests** (parsing, XMP,
 EXIF write→read round-trip, ZIP bundle, booklet PDF + roll-QR payload, backup +
 last-write-wins sync merge, search, stats, weather geocoding/historical lookup
 and pairing chunk/transfer) plus a real-browser smoke that seeds a library,

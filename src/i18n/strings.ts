@@ -210,8 +210,18 @@ export const de: Record<string, string> = {
   "Booklet PDF downloaded": "Heft-PDF heruntergeladen",
   "Link to roll (adds a scannable back-link QR)": "Mit Film verknüpfen (fügt scannbaren QR-Rücklink hinzu)",
   "— none (blank sheets) —": "— keiner (leere Blätter) —",
-  "A6 pages (one per sheet)": "A6-Seiten (eine pro Blatt)",
+  "One sheet per page": "Ein Blatt pro Seite",
   "A4 with 2×A6 (fold to booklet)": "A4 mit 2×A6 (zum Heft falten)",
+  "Paper size": "Papiergröße",
+  "Film": "Film",
+  "Generate blank log sheets to carry with your camera. Choose a paper size, type or pick the camera, film and lens, then print or save the PDF.":
+    "Erzeuge leere Protokollblätter für die Kameratasche. Wähle eine Papiergröße, tippe oder wähle Kamera, Film und Objektiv und drucke oder speichere das PDF.",
+  "Type or pick your gear — new entries can be saved to your library.": "Ausrüstung tippen oder wählen — neue Einträge lassen sich in deiner Bibliothek speichern.",
+  "in your library": "in deiner Bibliothek",
+  "Add to library": "Zur Bibliothek hinzufügen",
+  "Added {name} to your library": "{name} zur Bibliothek hinzugefügt",
+  "When printing, choose “Actual size” in the print dialog so the sheet keeps its real dimensions.":
+    "Wähle beim Drucken „Tatsächliche Größe“ im Druckdialog, damit das Blatt seine echten Maße behält.",
   "Each sheet gets a QR for “{roll}”. Photograph it back in via Film rolls ▸ Scan booklet to jump straight to this roll.":
     "Jedes Blatt erhält einen QR für „{roll}“. Fotografiere ihn über Filme ▸ Heft scannen zurück, um direkt zu diesem Film zu springen.",
   "Printing A6 pages at home? In the print dialog choose “Actual size”. To fit four A6 sheets on one A4, pick “4 pages per sheet”.":
