@@ -69,7 +69,11 @@ already understand.
 - ☁️ **Cloud sync** — point at one JSON file in any synced drive (iCloud Drive,
   Dropbox, Drive…); “Sync now” merges devices with last-write-wins.
 - 🖨️ **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
-  to carry with your camera.
+  to carry with your camera. Print a booklet **for a roll** and every sheet gets
+  a **QR back-link** — photograph it back in (Film rolls ▸ Scan booklet) to jump
+  straight to that roll.
+- 🌗 **Light & dark theme** and **English / German** UI, switchable in Settings
+  (theme follows the OS by default).
 
 Everything is **local-first** — your data lives on your device; nothing is
 uploaded.
@@ -87,6 +91,10 @@ uploaded.
 | Cloud sync & backup | Responsive on mobile |
 |---|---|
 | ![Settings & sync](docs/screenshots/settings.png) | <img src="docs/screenshots/mobile-drawer.png" width="240" alt="Mobile drawer"> |
+
+| Light theme | German UI (dark) |
+|---|---|
+| ![Light theme](docs/screenshots/theme-light.png) | ![German](docs/screenshots/settings-de.png) |
 
 | Film stocks | Print DIN A6 booklet | Mobile |
 |---|---|---|
@@ -152,6 +160,13 @@ npx cap sync
 npx cap open ios | android   # run & sign in Xcode / Android Studio
 ```
 
+**Automated release builds:** [`.github/workflows/release.yml`](.github/workflows/release.yml)
+builds **Windows + macOS** (Tauri), **Android** (Capacitor) and **iOS**
+(Capacitor) whenever you publish a GitHub Release, and attaches the artifacts to
+it. It runs only on `release`/manual dispatch, so it never gates pull requests.
+Desktop and the Android debug build need no secrets; store-ready Android/iOS
+signing uses repo secrets documented at the top of the workflow.
+
 ## How it compares
 
 There's a lively field of film-log apps. Here's an honest read of where we sit
@@ -195,32 +210,37 @@ Driven by user reviews of the competitors (see
 - ✅ **Wireless phone ⇆ desktop pairing** — WebRTC + QR, no cloud, no cable
 - ✅ **Manual location + retroactive weather** — geocode a place name, then fill
   the historical weather for the frame's own date & time
+- ✅ **Printed-booklet QR back-link** — a roll's log sheets carry a QR; scan it
+  back in to jump to the roll
+- ✅ **Light & dark theme** and **English / German** UI
+- ✅ **Automated release builds** for Windows, macOS, Android and iOS
 
 ### Still on the roadmap
 
 1. **Write EXIF into TIFF / DNG directly** — bundle ExifTool in the Tauri
    desktop build so any scan format gets embedded metadata, not just JPEG.
 2. **DX / edge-barcode decoding** — photograph the film rebate to auto-assign.
-3. **Printed-booklet QR tie-in** — stamp each printed A6 sheet with a QR code
-   that re-links it to its roll when you photograph it back in.
-4. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity timers.
-5. **Real-time sync** — a hosted relay for automatic multi-device sync.
+3. **Shooting calculators** — depth-of-field / hyperfocal, reciprocity timers.
+4. **Real-time sync** — a hosted relay for automatic multi-device sync.
+5. **More UI languages** beyond English & German.
 
 ## Tech
 
 React + TypeScript + Vite · Dexie (IndexedDB) · pdf-lib (booklet PDFs) ·
 piexifjs (EXIF embedding) · a hand-rolled XMP writer for Lightroom/Capture One
-interop · WebRTC + qrcode/jsQR for pairing · File System Access API for sync ·
-Open-Meteo geocoding + historical-weather APIs · Tauri 2 (desktop) + Capacitor
-(mobile) shells.
+interop · WebRTC + qrcode/jsQR for pairing & booklet QR · File System Access API
+for sync · Open-Meteo geocoding + historical-weather APIs · CSS-variable theming
+(light/dark) · a tiny English-key i18n layer (English/German) · Tauri 2
+(desktop) + Capacitor (mobile) shells · GitHub Actions release builds.
 
 ## Status
 
-Core is implemented and tested end-to-end — **63 unit tests** (parsing, XMP,
-EXIF write→read round-trip, ZIP bundle, booklet PDF, backup + last-write-wins
-sync merge, search, stats, weather geocoding/historical lookup and pairing
-chunk/transfer) plus a real-browser smoke that seeds a library, generates a live
-WebRTC pairing offer/QR and exercises search, insights and sync. The UI is fully
+Core is implemented and tested end-to-end — **66 unit tests** (parsing, XMP,
+EXIF write→read round-trip, ZIP bundle, booklet PDF + roll-QR payload, backup +
+last-write-wins sync merge, search, stats, weather geocoding/historical lookup
+and pairing chunk/transfer) plus a real-browser smoke that seeds a library,
+generates a live WebRTC pairing offer/QR, and verifies theme switching, the
+German UI, the booklet-QR deep-link/preview and cloud-sync. The UI is fully
 responsive — verified at 390/768/1440 px with no horizontal overflow on any
 screen, and a slide-out drawer on mobile. Screenshots above are captured
 headlessly from that build.

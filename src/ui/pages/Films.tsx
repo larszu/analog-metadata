@@ -10,6 +10,7 @@ import {
 } from "../../domain/constants";
 import type { DevelopmentProcess, FilmFormat, FilmStock, FilmType } from "../../domain/types";
 import { Field, Modal, Empty, useToast } from "../components";
+import { useT } from "../../app/prefs";
 
 type Draft = {
   brand: string; name: string; iso: number; type: FilmType;
@@ -22,6 +23,7 @@ export function Films() {
   const [editing, setEditing] = useState<FilmStock | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const toast = useToast();
+  const tr = useT();
 
   const open = (f?: FilmStock) => {
     setEditing(f ?? null);
@@ -30,30 +32,30 @@ export function Films() {
 
   const save = async () => {
     if (!draft || !draft.name.trim()) return;
-    if (editing) { await updateFilm(editing.id, draft); toast("Film updated"); }
-    else { await createFilm(draft); toast("Film added"); }
+    if (editing) { await updateFilm(editing.id, draft); toast(tr("Film updated")); }
+    else { await createFilm(draft); toast(tr("Film added")); }
     setDraft(null);
   };
 
   const addPreset = async (p: (typeof FILM_STOCK_PRESETS)[number]) => {
     await createFilm({ ...p, format: "135" });
-    toast(`Added ${p.brand} ${p.name}`);
+    toast(tr("Added {name}", { name: `${p.brand} ${p.name}` }));
   };
 
   return (
     <div>
       <div className="content-head">
         <div>
-          <h1>Film stocks</h1>
-          <p className="sub">The films you shoot. ISO and stock name are recorded per roll and written to every frame's metadata and keywords.</p>
+          <h1>{tr("Film stocks")}</h1>
+          <p className="sub">{tr("The films you shoot. ISO and stock name are recorded per roll and written to every frame's metadata and keywords.")}</p>
         </div>
-        <button className="btn primary" onClick={() => open()}>＋ Add film</button>
+        <button className="btn primary" onClick={() => open()}>{tr("＋ Add film")}</button>
       </div>
 
       {films && films.length === 0 && (
         <>
-          <Empty icon="🎞" title="No film stocks yet">Add one manually, or pick from the popular presets below.</Empty>
-          <h3 style={{ marginTop: 24 }}>Quick add presets</h3>
+          <Empty icon="🎞" title={tr("No film stocks yet")}>{tr("Add one manually, or pick from the popular presets below.")}</Empty>
+          <h3 style={{ marginTop: 24 }}>{tr("Quick add presets")}</h3>
           <div className="chips">
             {FILM_STOCK_PRESETS.map((p) => (
               <button key={`${p.brand}${p.name}`} className="chip" onClick={() => addPreset(p)}>
@@ -76,34 +78,34 @@ export function Films() {
       </div>
 
       {draft && (
-        <Modal title={editing ? "Edit film" : "Add film"} onClose={() => setDraft(null)}>
+        <Modal title={editing ? tr("Edit film") : tr("Add film")} onClose={() => setDraft(null)}>
           <div className="field-row">
-            <Field label="Brand"><input autoFocus value={draft.brand} onChange={(e) => setDraft({ ...draft, brand: e.target.value })} placeholder="Kodak" /></Field>
-            <Field label="Name"><input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Portra 400" /></Field>
+            <Field label={tr("Brand")}><input autoFocus value={draft.brand} onChange={(e) => setDraft({ ...draft, brand: e.target.value })} placeholder="Kodak" /></Field>
+            <Field label={tr("Name")}><input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Portra 400" /></Field>
           </div>
           <div className="field-row three">
             <Field label="ISO"><input type="number" value={draft.iso} onChange={(e) => setDraft({ ...draft, iso: Number(e.target.value) })} /></Field>
-            <Field label="Type">
+            <Field label={tr("Type")}>
               <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as FilmType })}>
                 {FILM_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </Field>
-            <Field label="Process">
+            <Field label={tr("Process")}>
               <select value={draft.process} onChange={(e) => setDraft({ ...draft, process: e.target.value as DevelopmentProcess })}>
                 {DEV_PROCESSES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </Field>
           </div>
-          <Field label="Format">
+          <Field label={tr("Format")}>
             <select value={draft.format} onChange={(e) => setDraft({ ...draft, format: e.target.value as FilmFormat })}>
               {FILM_FORMATS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
             </select>
           </Field>
           <div className="modal-actions">
-            {editing && <button className="btn danger" onClick={async () => { await deleteFilm(editing.id); setDraft(null); toast("Film deleted"); }}>Delete</button>}
+            {editing && <button className="btn danger" onClick={async () => { await deleteFilm(editing.id); setDraft(null); toast(tr("Film deleted")); }}>{tr("Delete")}</button>}
             <div className="spacer" />
-            <button className="btn ghost" onClick={() => setDraft(null)}>Cancel</button>
-            <button className="btn primary" onClick={save} disabled={!draft.name.trim()}>Save</button>
+            <button className="btn ghost" onClick={() => setDraft(null)}>{tr("Cancel")}</button>
+            <button className="btn primary" onClick={save} disabled={!draft.name.trim()}>{tr("Save")}</button>
           </div>
         </Modal>
       )}

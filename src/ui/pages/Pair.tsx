@@ -14,6 +14,7 @@ import {
 } from "../../core/pairing";
 import { fileToDataUrl, makeThumbnail } from "../imageUtils";
 import { Field, useToast } from "../components";
+import { useT } from "../../app/prefs";
 
 type Role = "choose" | "receive" | "send";
 const RTC_CONFIG: RTCConfiguration = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
@@ -34,6 +35,7 @@ function waitForIce(pc: RTCPeerConnection): Promise<void> {
 
 export function Pair() {
   const toast = useToast();
+  const t = useT();
   const [role, setRole] = useState<Role>("choose");
   const [status, setStatus] = useState("");
   const [connected, setConnected] = useState(false);
@@ -207,24 +209,23 @@ export function Pair() {
     <div>
       <div className="content-head">
         <div>
-          <h1>Pair devices <span className="badge warn">beta</span></h1>
+          <h1>{t("Pair devices")} <span className="badge warn">beta</span></h1>
           <p className="sub">
-            Send a photo of your log page straight from your phone to this device over your local network —
-            no cable, no cloud. Both devices open this page; one receives, the other sends.
+            {t("Send a photo of your log page straight from your phone to this device over your local network — no cable, no cloud. Both devices open this page; one receives, the other sends.")}
           </p>
         </div>
-        {role !== "choose" && <button className="btn ghost" onClick={reset}>← Start over</button>}
+        {role !== "choose" && <button className="btn ghost" onClick={reset}>{t("Start over")}</button>}
       </div>
 
       {role === "choose" && (
         <div className="grid cols-2" style={{ maxWidth: 720 }}>
           <div className="card click" onClick={startReceive}>
-            <h3>🖥️ Receive here</h3>
-            <div className="meta">This device shows a pairing code and receives the photo. Usually your desktop.</div>
+            <h3>{t("🖥️ Receive here")}</h3>
+            <div className="meta">{t("This device shows a pairing code and receives the photo. Usually your desktop.")}</div>
           </div>
           <div className="card click" onClick={() => setRole("send")}>
-            <h3>📱 Send from here</h3>
-            <div className="meta">Scan the other device's code, then pick or snap the log page. Usually your phone.</div>
+            <h3>{t("📱 Send from here")}</h3>
+            <div className="meta">{t("Scan the other device's code, then pick or snap the log page. Usually your phone.")}</div>
           </div>
         </div>
       )}

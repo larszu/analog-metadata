@@ -11,9 +11,25 @@
  * (camera, film, ISO, date, developer …) and a table of frame rows with narrow
  * columns for the per-frame facts (aperture, shutter, lens, subject, weather).
  */
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from "pdf-lib";
+import QRCode from "qrcode";
 
 const MM = 2.834645669; // points per millimetre
+
+/**
+ * QR back-linking: a booklet printed for a roll carries a QR on every sheet
+ * encoding that roll, so photographing the sheet later re-opens the right roll.
+ */
+export const ROLL_QR_PREFIX = "analogmeta:roll:";
+
+export function rollQrPayload(rollId: string): string {
+  return `${ROLL_QR_PREFIX}${rollId}`;
+}
+
+export function parseRollQr(text: string): string | undefined {
+  const trimmed = text.trim();
+  return trimmed.startsWith(ROLL_QR_PREFIX) ? trimmed.slice(ROLL_QR_PREFIX.length) : undefined;
+}
 const A6 = { w: 105 * MM, h: 148 * MM };
 const A4_LANDSCAPE = { w: 297 * MM, h: 210 * MM };
 
@@ -29,6 +45,8 @@ export interface BookletOptions {
   film?: string;
   iso?: string;
   date?: string;
+  /** When set, a QR of this string is stamped on every sheet (roll back-link). */
+  qrData?: string;
 }
 
 interface Column {
@@ -67,12 +85,19 @@ function drawSheet(
   opts: BookletOptions,
   startFrame: number,
   rows: number,
+  qrImage?: PDFImage,
 ) {
   const margin = 8 * MM;
   const left = ox + margin;
   const right = ox + w - margin;
   const usable = right - left;
   let y = oy + h - margin;
+
+  // Roll back-link QR in the top-right corner.
+  if (qrImage) {
+    const qrSize = 12 * MM;
+    page.drawImage(qrImage, { x: right - qrSize, y: oy + h - margin - qrSize, width: qrSize, height: qrSize });
+  }
 
   // Title
   page.drawText(opts.title || "Film log", {
@@ -171,6 +196,12 @@ export async function buildBookletPdf(opts: BookletOptions = {}): Promise<Uint8A
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
   };
 
+  let qrImage: PDFImage | undefined;
+  if (opts.qrData) {
+    const pngDataUrl = await QRCode.toDataURL(opts.qrData, { margin: 0, width: 160 });
+    qrImage = await doc.embedPng(pngDataUrl);
+  }
+
   let frame = 1;
   if (layout === "a4-2up") {
     // Two A6 sheets per landscape A4 page.
@@ -197,6 +228,7 @@ export async function buildBookletPdf(opts: BookletOptions = {}): Promise<Uint8A
           opts,
           frame,
           framesPerSheet,
+          qrImage,
         );
         frame += framesPerSheet;
       }
@@ -204,7 +236,7 @@ export async function buildBookletPdf(opts: BookletOptions = {}): Promise<Uint8A
   } else {
     for (let s = 0; s < sheets; s++) {
       const page = doc.addPage([A6.w, A6.h]);
-      drawSheet(page, fonts, 0, 0, A6.w, A6.h, opts, frame, framesPerSheet);
+      drawSheet(page, fonts, 0, 0, A6.w, A6.h, opts, frame, framesPerSheet, qrImage);
       frame += framesPerSheet;
     }
   }

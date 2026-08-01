@@ -4,6 +4,7 @@ import { geocodePlace, lookupHistoricalWeather } from "../../data/geo";
 import type { Frame, Lens, Roll, Weather } from "../../domain/types";
 import { APERTURE_SCALE, SHUTTER_SPEEDS, WEATHER_OPTIONS } from "../../domain/constants";
 import { Field, ChipGroup, ChipPick, useToast } from "../components";
+import { useT } from "../../app/prefs";
 
 export interface ScanEntry {
   name: string;
@@ -31,6 +32,7 @@ export function FrameEditor({
   const [geocoding, setGeocoding] = useState(false);
   const [fetchingWx, setFetchingWx] = useState(false);
   const toast = useToast();
+  const t = useT();
 
   // Persist a patch and mirror it locally so inputs stay responsive.
   const patch = (p: Partial<Frame>) => {
@@ -100,21 +102,21 @@ export function FrameEditor({
   return (
     <div className="card">
       <div className="row" style={{ marginBottom: 12 }}>
-        <h2 style={{ margin: 0 }}>Frame {f.frameNumber}</h2>
+        <h2 style={{ margin: 0 }}>{t("Frame")} {f.frameNumber}</h2>
         {prevFrame && (
           <button className="btn sm ghost" onClick={copyPrevious} title="Copy lens, aperture, shutter & weather from the previous frame">
-            ⧉ Copy previous
+            {t("⧉ Copy previous")}
           </button>
         )}
         <div className="spacer" />
         {f.scanFileName ? (
           <span className="badge ok">↔ {f.scanFileName}</span>
         ) : (
-          <span className="badge warn">no scan linked</span>
+          <span className="badge warn">{t("no scan linked")}</span>
         )}
       </div>
 
-      <Field label="Linked scan">
+      <Field label={t("Linked scan")}>
         <select
           value={f.scanFileName ?? ""}
           onChange={(e) => {
@@ -123,7 +125,7 @@ export function FrameEditor({
             patch({ scanFileName: name, scanThumbUrl: thumb });
           }}
         >
-          <option value="">— not linked —</option>
+          <option value="">{t("— not linked —")}</option>
           {/* keep an existing name available even if the file isn't re-imported */}
           {f.scanFileName && !scans.some((s) => s.name === f.scanFileName) && (
             <option value={f.scanFileName}>{f.scanFileName} (not re-imported)</option>
@@ -134,45 +136,45 @@ export function FrameEditor({
         </select>
       </Field>
 
-      <Field label="Subject / title">
+      <Field label={t("Subject / title")}>
         <input value={f.title ?? ""} onChange={(e) => patch({ title: e.target.value })} placeholder="Harbour crane at dusk" />
       </Field>
 
-      <Field label="Description">
+      <Field label={t("Description")}>
         <textarea value={f.description ?? ""} onChange={(e) => patch({ description: e.target.value })} />
       </Field>
 
       <div className="field-row">
-        <Field label="Lens">
+        <Field label={t("Lens")}>
           <select value={f.lensId ?? ""} onChange={(e) => patch({ lensId: e.target.value || undefined })}>
-            <option value="">— none —</option>
+            <option value="">{t("— none —")}</option>
             {lenses.map((l) => <option key={l.id} value={l.id}>{l.make} {l.model}</option>)}
           </select>
         </Field>
-        <Field label="Focal length override (mm)">
+        <Field label={t("Focal length override (mm)")}>
           <input value={f.focalLength ?? ""} onChange={(e) => patch({ focalLength: e.target.value })} placeholder="from lens" />
         </Field>
       </div>
 
-      <Field label="Aperture (f-stop)">
+      <Field label={t("Aperture (f-stop)")}>
         <input value={f.aperture ?? ""} onChange={(e) => patch({ aperture: e.target.value })} placeholder="5.6" style={{ marginBottom: 8 }} />
         <ChipPick options={APERTURE_SCALE} value={f.aperture} onChange={(v) => patch({ aperture: v })} />
       </Field>
 
-      <Field label="Shutter speed">
+      <Field label={t("Shutter speed")}>
         <input value={f.shutterSpeed ?? ""} onChange={(e) => patch({ shutterSpeed: e.target.value })} placeholder="1/125" style={{ marginBottom: 8 }} />
         <ChipPick options={SHUTTER_SPEEDS} value={f.shutterSpeed} onChange={(v) => patch({ shutterSpeed: v })} />
       </Field>
 
       <div className="field-row">
-        <Field label="Date &amp; time taken">
+        <Field label={t("Date & time taken")}>
           <input
             type="datetime-local"
             value={dateValue}
             onChange={(e) => patch({ dateTaken: e.target.value ? `${e.target.value}:00` : undefined })}
           />
         </Field>
-        <Field label="Location (place)">
+        <Field label={t("Location (place)")}>
           <input value={f.location ?? ""} onChange={(e) => patch({ location: e.target.value })} placeholder="Hamburg, Speicherstadt" />
         </Field>
       </div>
@@ -180,27 +182,26 @@ export function FrameEditor({
       <div className="row" style={{ gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         <button className="btn sm" onClick={findCoordinates} disabled={geocoding}
           title="Look up GPS coordinates for the place name you typed">
-          {geocoding ? "🔎 Finding…" : "🔎 Find coordinates"}
+          {geocoding ? t("🔎 Finding…") : t("🔎 Find coordinates")}
         </button>
         <button className="btn sm" onClick={lookUpWeather} disabled={fetchingWx}
           title="Fill the weather from this frame's place, date and time">
-          {fetchingWx ? "🌤 Fetching…" : "🌤 Weather for this place & time"}
+          {fetchingWx ? t("🌤 Fetching…") : t("🌤 Weather for this place & time")}
         </button>
       </div>
       <p className="hint" style={{ marginTop: -4, marginBottom: 12 }}>
-        The frame's location and time are yours to enter — the analog photo has none. Given a place and a
-        date &amp; time, the weather can be filled in retroactively from historical records.
+        {t("The frame's location and time are yours to enter — the analog photo has none. Given a place and a date & time, the weather can be filled in retroactively from historical records.")}
       </p>
 
-      <Field label="Weather">
+      <Field label={t("Weather")}>
         <ChipGroup<Weather>
-          options={WEATHER_OPTIONS}
+          options={WEATHER_OPTIONS.map((w) => ({ ...w, label: t(w.label) }))}
           value={f.weather ?? []}
           onChange={(next) => patch({ weather: next })}
         />
       </Field>
 
-      <Field label="Keywords (comma separated)">
+      <Field label={t("Keywords (comma separated)")}>
         <input
           value={(f.keywords ?? []).join(", ")}
           onChange={(e) => patch({ keywords: e.target.value.split(",").map((k) => k.trim()).filter(Boolean) })}
@@ -209,7 +210,7 @@ export function FrameEditor({
       </Field>
 
       <div className="field-row">
-        <Field label="GPS latitude">
+        <Field label={t("GPS latitude")}>
           <input
             type="number" step="any"
             value={f.gps?.lat ?? ""}
@@ -219,7 +220,7 @@ export function FrameEditor({
             }}
           />
         </Field>
-        <Field label="GPS longitude">
+        <Field label={t("GPS longitude")}>
           <input
             type="number" step="any"
             value={f.gps?.lon ?? ""}
@@ -231,13 +232,12 @@ export function FrameEditor({
         </Field>
       </div>
 
-      <Field label="Notes">
+      <Field label={t("Notes")}>
         <textarea value={f.notes ?? ""} onChange={(e) => patch({ notes: e.target.value })} />
       </Field>
 
       <p className="hint">
-        Values pulled from the roll: film {roll.filmStockId ? "✓" : "—"}, camera {roll.cameraId ? "✓" : "—"}.
-        These are merged into every frame's metadata automatically on export.
+        {t("Values pulled from the roll: film {film}, camera {camera}. These are merged into every frame's metadata automatically on export.", { film: roll.filmStockId ? "✓" : "—", camera: roll.cameraId ? "✓" : "—" })}
       </p>
     </div>
   );

@@ -13,11 +13,13 @@ import { resolveFrameMetadata } from "../../core/mapping";
 import { buildExportZip, type ExportItem } from "../../core/export";
 import { fileToDataUrl, makeThumbnail } from "../imageUtils";
 import { Field, Modal, Empty, useToast } from "../components";
+import { useT } from "../../app/prefs";
 import { FrameEditor, type ScanEntry } from "./FrameEditor";
 
 export function RollWorkspace() {
   const { id } = useParams();
   const toast = useToast();
+  const t = useT();
 
   const roll = useLiveQuery(() => (id ? db.rolls.get(id) : undefined), [id]);
   const frames = useLiveQuery(
@@ -159,32 +161,33 @@ export function RollWorkspace() {
       <div className="content-head">
         <div>
           <div className="row" style={{ gap: 8 }}>
-            <Link to="/rolls" className="btn ghost sm">← Rolls</Link>
+            <Link to="/rolls" className="btn ghost sm">{t("← Rolls")}</Link>
           </div>
           <h1 style={{ marginTop: 8 }}>{roll.label}</h1>
           <p className="sub">
-            {describeRoll(roll, cameras ?? [], films ?? [])} · {linkedCount}/{frames.length} frames linked to scans
+            {describeRoll(roll, cameras ?? [], films ?? [])} · {t("{n} frames linked to scans", { n: `${linkedCount}/${frames.length}` })}
           </p>
         </div>
         <div className="row">
-          <button className="btn" onClick={() => setShowSettings(true)}>Roll settings</button>
-          <button className="btn primary" onClick={doExport} disabled={busy}>⤓ Export metadata</button>
+          <Link to={`/print?roll=${roll.id}`} className="btn">{t("🖨️ Print log sheets")}</Link>
+          <button className="btn" onClick={() => setShowSettings(true)}>{t("Roll settings")}</button>
+          <button className="btn primary" onClick={doExport} disabled={busy}>{t("⤓ Export metadata")}</button>
         </div>
       </div>
 
       <div className="toolbar">
-        <button className="btn" onClick={() => scanInput.current?.click()}>＋ Import scans</button>
-        <button className="btn" onClick={autoAssign}>⇄ Auto-assign in order</button>
-        <button className="btn" onClick={() => logInput.current?.click()}>📷 Capture log page</button>
-        <button className="btn" onClick={applyToEmpty} title="Copy this frame's lens, aperture & shutter to all frames that have none">⤵ Apply to empty frames</button>
-        <button className="btn ghost" onClick={addFrame}>＋ Frame</button>
+        <button className="btn" onClick={() => scanInput.current?.click()}>{t("＋ Import scans")}</button>
+        <button className="btn" onClick={autoAssign}>{t("⇄ Auto-assign in order")}</button>
+        <button className="btn" onClick={() => logInput.current?.click()}>{t("📷 Capture log page")}</button>
+        <button className="btn" onClick={applyToEmpty} title="Copy this frame's lens, aperture & shutter to all frames that have none">{t("⤵ Apply to empty frames")}</button>
+        <button className="btn ghost" onClick={addFrame}>{t("＋ Frame")}</button>
         <input ref={scanInput} type="file" accept="image/*" multiple hidden onChange={(e) => { importScans(e.target.files); e.target.value = ""; }} />
         <input ref={logInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => { captureLogPhoto(e.target.files); e.target.value = ""; }} />
       </div>
 
       {scans.length > 0 && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <h3>Imported scans ({scans.length})</h3>
+          <h3>{t("Imported scans")} ({scans.length})</h3>
           <div className="chips">
             {scans.map((s) => {
               const linked = frames.some((f) => f.scanFileName === s.name);

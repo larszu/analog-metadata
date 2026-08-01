@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import { useT } from "../app/prefs";
 
 const NAV = [
   { to: "/", icon: "🎞️", label: "Overview", end: true },
@@ -18,6 +19,7 @@ const NAV = [
 
 export function Layout() {
   const [open, setOpen] = useState(false);
+  const t = useT();
   const close = () => setOpen(false);
 
   const brand = (
@@ -25,7 +27,7 @@ export function Layout() {
       <div className="logo">🎞️</div>
       <div>
         <b>Analog Metadata</b>
-        <span>film log → digital scans</span>
+        <span>{t("film log → digital scans")}</span>
       </div>
     </div>
   );
@@ -59,7 +61,7 @@ export function Layout() {
               className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
             >
               <span className="ico">{item.icon}</span>
-              <span className="lbl">{item.label}</span>
+              <span className="lbl">{t(item.label)}</span>
             </NavLink>
           ),
         )}

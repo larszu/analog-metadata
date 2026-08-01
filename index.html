@@ -9,6 +9,18 @@
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%9E%EF%B8%8F%3C/text%3E%3C/svg%3E"
     />
     <title>Analog Metadata — film log to digital scans</title>
+    <script>
+      // Set the theme before first paint to avoid a flash of the wrong colours.
+      (function () {
+        try {
+          var c = localStorage.getItem("theme") || "system";
+          var dark = c === "dark" || (c === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

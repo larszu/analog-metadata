@@ -1,0 +1,130 @@
+name: Build release apps
+
+# Builds the desktop (Windows + macOS), Android and iOS apps and attaches the
+# artifacts to the GitHub Release that triggered the run. Also runnable on demand.
+#
+# Only fires on a published release or manual dispatch — never on push/PR — so it
+# doesn't gate ordinary pull requests.
+#
+# Signing: desktop and the Android debug build work with no secrets. Store-ready
+# signing needs secrets you add under Settings ▸ Secrets and variables ▸ Actions:
+#   Android release: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
+#                    ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#   iOS distribution: BUILD_CERTIFICATE_BASE64, P12_PASSWORD, PROVISIONING_PROFILE_BASE64
+# Without them the iOS job produces an unsigned build for verification only.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # --- Desktop: Windows + macOS (Apple Silicon & Intel) via Tauri ----------
+  desktop:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            rust-target: aarch64-apple-darwin
+            args: --target aarch64-apple-darwin
+          - os: macos-latest
+            rust-target: x86_64-apple-darwin
+            args: --target x86_64-apple-darwin
+          - os: windows-latest
+            rust-target: ""
+            args: ""
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+      - name: Cache cargo
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - run: npm ci
+      - name: Build desktop app + attach to release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          releaseId: ${{ github.event.release.id }}
+          args: ${{ matrix.args }}
+
+  # --- Android (Capacitor) --------------------------------------------------
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - run: npm ci
+      - name: Add Capacitor Android tooling
+        run: npm install @capacitor/core @capacitor/android && npm install -D @capacitor/cli
+      - name: Build web assets
+        run: npm run build
+      - name: Generate & sync the native Android project
+        run: |
+          npx cap add android || echo "android project already present"
+          npx cap sync android
+      - name: Assemble APK
+        run: cd android && ./gradlew assembleDebug --no-daemon
+      - name: Upload APK to the release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/debug/*.apk
+      - name: Upload APK as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+
+  # --- iOS (Capacitor) ------------------------------------------------------
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Add Capacitor iOS tooling
+        run: npm install @capacitor/core @capacitor/ios && npm install -D @capacitor/cli
+      - name: Build web assets
+        run: npm run build
+      - name: Generate & sync the native iOS project
+        run: |
+          npx cap add ios || echo "ios project already present"
+          npx cap sync ios
+      - name: Build (unsigned) — verification without Apple secrets
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace \
+            -scheme App -configuration Release -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/App.xcarchive" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO archive
+      - name: Package the unsigned .app
+        run: |
+          cd "$RUNNER_TEMP/App.xcarchive/Products/Applications" && zip -r "$RUNNER_TEMP/App-unsigned.zip" App.app
+      - name: Upload iOS build as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-unsigned
+          path: ${{ runner.temp }}/App-unsigned.zip
