@@ -11,6 +11,8 @@ import { parseOcrLines, type FrameOcrSuggestion } from "../core/ocr";
 export async function recognizeLogPage(
   imageDataUrl: string,
   onProgress?: (fraction: number) => void,
+  /** The roll's frame numbers — used to repair merged "frame+aperture" tokens. */
+  expectedFrames?: number[],
 ): Promise<FrameOcrSuggestion[]> {
   // Lazy-load Tesseract (large) only when OCR is actually used.
   const { createWorker } = await import("tesseract.js");
@@ -24,7 +26,7 @@ export async function recognizeLogPage(
   try {
     const { data } = await worker.recognize(imageDataUrl);
     const lines = data.lines.map((l) => l.text.trim()).filter(Boolean);
-    return parseOcrLines(lines);
+    return parseOcrLines(lines, { expectedFrames });
   } finally {
     await worker.terminate();
   }

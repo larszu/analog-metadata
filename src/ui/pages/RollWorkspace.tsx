@@ -8,12 +8,12 @@ import {
   deleteRoll,
   updateRoll,
 } from "../../data/repo";
-import type { Frame, Roll } from "../../domain/types";
+import type { Frame, Roll, Weather } from "../../domain/types";
 import { resolveFrameMetadata } from "../../core/mapping";
 import { buildExportZip, type ExportItem } from "../../core/export";
 import { fileToDataUrl, makeThumbnail } from "../imageUtils";
 import { recognizeLogPage } from "../../data/ocr";
-import { suggestionToPatch, type FrameOcrSuggestion } from "../../core/ocr";
+import { matchLensByFocalLength, suggestionToPatch, type FrameOcrSuggestion } from "../../core/ocr";
 import { Field, Modal, Empty, useToast } from "../components";
 import { useT } from "../../app/prefs";
 import { FrameEditor, type ScanEntry } from "./FrameEditor";
@@ -115,7 +115,11 @@ export function RollWorkspace() {
   const runOcr = async (dataUrl: string) => {
     setOcrProgress(0);
     try {
-      const rows = await recognizeLogPage(dataUrl, (p) => setOcrProgress(p));
+      const rows = await recognizeLogPage(
+        dataUrl,
+        (p) => setOcrProgress(p),
+        frames.map((f) => f.frameNumber),
+      );
       if (rows.length === 0) {
         toast(t("No text recognised — try a sharper, straighter photo"));
       } else {
@@ -136,6 +140,9 @@ export function RollWorkspace() {
       const target = frames.find((f) => f.frameNumber === r.frameNumber);
       if (!target) continue;
       const patch: Partial<Frame> = { ...suggestionToPatch(r), updatedAt: new Date().toISOString() };
+      // A recognised "50mm" resolves to the actual lens record when we have one.
+      const lens = matchLensByFocalLength(r.focalLength, lenses ?? []);
+      if (lens) patch.lensId = lens.id;
       await db.frames.update(target.id, patch);
       applied++;
     }
@@ -330,9 +337,11 @@ function OcrReview({
           <thead>
             <tr style={{ textAlign: "left", color: "var(--text-dim)" }}>
               <th style={{ padding: "4px 6px", width: 60 }}>{t("Frame")}</th>
-              <th style={{ padding: "4px 6px", width: 80 }}>f/</th>
-              <th style={{ padding: "4px 6px", width: 90 }}>{t("Shutter speed")}</th>
+              <th style={{ padding: "4px 6px", width: 74 }}>f/</th>
+              <th style={{ padding: "4px 6px", width: 86 }}>{t("Shutter speed")}</th>
+              <th style={{ padding: "4px 6px", width: 86 }}>{t("Lens")}</th>
               <th style={{ padding: "4px 6px" }}>{t("Subject / title")}</th>
+              <th style={{ padding: "4px 6px", width: 110 }}>{t("Weather")}</th>
             </tr>
           </thead>
           <tbody>
@@ -343,7 +352,16 @@ function OcrReview({
                 </td>
                 <td style={{ padding: "4px 6px" }}><input value={r.aperture ?? ""} onChange={(e) => set(i, { aperture: e.target.value })} /></td>
                 <td style={{ padding: "4px 6px" }}><input value={r.shutter ?? ""} onChange={(e) => set(i, { shutter: e.target.value })} /></td>
+                <td style={{ padding: "4px 6px" }}>
+                  <input value={r.focalLength ?? ""} onChange={(e) => set(i, { focalLength: e.target.value })} placeholder="50" />
+                </td>
                 <td style={{ padding: "4px 6px" }}><input value={r.subject ?? ""} onChange={(e) => set(i, { subject: e.target.value })} /></td>
+                <td style={{ padding: "4px 6px" }}>
+                  <input
+                    value={(r.weather ?? []).join(", ")}
+                    onChange={(e) => set(i, { weather: e.target.value.split(",").map((w) => w.trim()).filter(Boolean) as Weather[] })}
+                  />
+                </td>
               </tr>
             ))}
           </tbody>

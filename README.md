@@ -58,9 +58,13 @@ already understand.
   device camera and keep it on-screen while you transcribe.
 - 🔤 **Handwriting recognition (OCR, beta)** — read the photographed sheet
   **client-side** (Tesseract.js, no cloud) into per-frame suggestions; review
-  them in a table, then apply aperture, shutter and subject to the frames. Since
-  we print the sheet's fixed column order, tokens map to fields deterministically
-  (the first numeric is the f-stop, the next the shutter …).
+  them in a table, then apply **frame no., aperture, shutter, lens, subject and
+  weather** to the frames. Because we print the sheet ourselves, recognition is
+  grounded in what's on the page: the fixed column order maps tokens to fields
+  (first numeric = f-stop, next = shutter), "50mm" resolves to the matching lens
+  in your library, Wx words become weather chips, and the **pre-printed frame
+  numbers repair** OCR's most common artifact (the frame running into the
+  aperture, "1 5.6" → "15.6").
 - 🔗 **Pair phone ⇆ desktop** — beam a log-page photo from your phone straight
   to the desktop over your local network via a QR handshake (WebRTC, no cloud).
 - 🔗 **Assign scans intuitively** — import your scans, then **auto-assign in
@@ -224,7 +228,7 @@ Driven by user reviews of the competitors (see
 - ✅ **Booklet paper sizes** (A6/A5/A4/Letter) + manual camera/film/lens entry
   with library recognition ("add to library" for new gear)
 - ✅ **Handwriting OCR (beta)** — read a photographed log sheet into reviewable
-  per-frame suggestions, fully client-side
+  per-frame suggestions (all six columns), fully client-side
 
 ### Still on the roadmap
 
@@ -246,7 +250,7 @@ for sync · Open-Meteo geocoding + historical-weather APIs · Tesseract.js (clie
 
 ## Status
 
-Core is implemented and tested end-to-end — **82 unit tests** (parsing, XMP,
+Core is implemented and tested end-to-end — **92 unit tests** (parsing, XMP,
 EXIF write→read round-trip, ZIP bundle, booklet PDF + roll-QR payload, backup +
 last-write-wins sync merge, search, stats, weather geocoding/historical lookup
 and pairing chunk/transfer) plus a real-browser smoke that seeds a library,

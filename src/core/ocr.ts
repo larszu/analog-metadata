@@ -9,6 +9,7 @@
  * Handwriting recognition is never perfect, so the output is *suggestions* the
  * user reviews before applying — this layer just does the best-effort mapping.
  */
+import type { Weather } from "../domain/types";
 
 /** Common full/half aperture stops, and the dotless forms OCR often produces. */
 const APERTURE_DOTLESS: Record<string, string> = {
@@ -56,58 +57,152 @@ export function parseFrameNumber(raw: string): number | undefined {
   return n >= 1 && n <= 999 ? n : undefined;
 }
 
+/**
+ * Focal length as written in the printed "Lens" column: "50mm", "50 mm",
+ * "24-70mm". The "mm" suffix is required — a bare number would be ambiguous
+ * with the aperture and shutter columns.
+ */
+export function normalizeFocalLength(raw: string): string | undefined {
+  const m = raw.trim().toLowerCase().match(/^(\d{1,3}(?:-\d{1,3})?)\s*mm$/);
+  return m ? m[1] : undefined;
+}
+
+/**
+ * Weather words/abbreviations from the "Wx" column. Deliberately a tight
+ * vocabulary so ordinary subject words aren't mistaken for conditions.
+ */
+const WEATHER_WORDS: Record<string, Weather> = {
+  sun: "sunny", sunny: "sunny", clear: "sunny",
+  pc: "partly-cloudy", partly: "partly-cloudy",
+  cloud: "overcast", cloudy: "overcast", overcast: "overcast", oc: "overcast",
+  rain: "rain", rainy: "rain",
+  snow: "snow", snowy: "snow",
+  fog: "fog", foggy: "fog", mist: "fog",
+  golden: "golden-hour",
+  blue: "blue-hour",
+  night: "night",
+  indoor: "indoor", inside: "indoor",
+  flash: "flash",
+};
+
+export function normalizeWeather(raw: string): Weather | undefined {
+  return WEATHER_WORDS[raw.trim().toLowerCase().replace(/[.,;:]$/, "")];
+}
+
 export interface FrameOcrSuggestion {
   frameNumber?: number;
   aperture?: string;
   shutter?: string;
+  /** Focal length from the Lens column, e.g. "50" or "24-70". */
+  focalLength?: string;
+  weather?: Weather[];
   subject?: string;
   /** The original recognised line, shown in review for context. */
   raw: string;
+}
+
+export interface ParseOcrOptions {
+  /**
+   * Frame numbers actually printed on the sheet (the roll's frames). Supplying
+   * them lets us undo the most common OCR artifact: the pre-printed frame
+   * number running into the handwritten aperture ("1 5.6" → "15.6").
+   */
+  expectedFrames?: number[];
+}
+
+/**
+ * Split a leading token that merged the frame number and the aperture. Only
+ * splits when the prefix is a frame number we expect *and* the remainder is a
+ * valid aperture, so it can't invent data.
+ */
+export function splitMergedFrameAperture(
+  token: string,
+  expected: Set<number>,
+): { frame: number; aperture: string } | undefined {
+  if (expected.size === 0) return undefined;
+  for (let len = 1; len <= 2 && len < token.length; len++) {
+    const frame = Number(token.slice(0, len));
+    if (!Number.isInteger(frame) || !expected.has(frame)) continue;
+    const aperture = normalizeAperture(token.slice(len));
+    if (aperture) return { frame, aperture };
+  }
+  return undefined;
 }
 
 /**
  * Classify one recognised row into a frame suggestion. Tokens are consumed in
  * order so the printed column order (f/ before Time) resolves the f/8-vs-1/8
  * ambiguity: the first numeric becomes the aperture, the next the shutter.
+ * Lens ("50mm") and weather words are picked out wherever they appear; the
+ * remaining words form the subject.
  */
-export function parseOcrLine(text: string): FrameOcrSuggestion {
+export function parseOcrLine(text: string, opts?: ParseOcrOptions): FrameOcrSuggestion {
   const tokens = text.trim().split(/\s+/).filter(Boolean);
   const out: FrameOcrSuggestion = { raw: text.trim() };
   if (tokens.length === 0) return out;
 
+  const expected = new Set(opts?.expectedFrames ?? []);
   let i = 0;
   const fn = parseFrameNumber(tokens[0]);
-  if (fn !== undefined) {
+  if (fn !== undefined && (expected.size === 0 || expected.has(fn))) {
     out.frameNumber = fn;
     i = 1;
+  } else {
+    // The leading token may be "<frame><aperture>" glued together by OCR.
+    const split = splitMergedFrameAperture(tokens[0], expected);
+    if (split) {
+      out.frameNumber = split.frame;
+      out.aperture = split.aperture;
+      i = 1;
+    } else if (fn !== undefined) {
+      out.frameNumber = fn;
+      i = 1;
+    }
   }
 
   const subjectWords: string[] = [];
+  const weather: Weather[] = [];
   for (; i < tokens.length; i++) {
     const tok = tokens[i];
-    if (out.aperture === undefined && normalizeAperture(tok)) {
+    if (out.focalLength === undefined && normalizeFocalLength(tok)) {
+      out.focalLength = normalizeFocalLength(tok);
+    } else if (out.aperture === undefined && normalizeAperture(tok)) {
       out.aperture = normalizeAperture(tok);
     } else if (out.shutter === undefined && normalizeShutter(tok)) {
       out.shutter = normalizeShutter(tok);
+    } else if (normalizeWeather(tok)) {
+      const w = normalizeWeather(tok)!;
+      if (!weather.includes(w)) weather.push(w);
     } else if (/[a-zA-ZäöüÄÖÜ]{2,}/.test(tok)) {
       subjectWords.push(tok);
     }
   }
+  if (weather.length) out.weather = weather;
   if (subjectWords.length) out.subject = subjectWords.join(" ");
   return out;
 }
 
 /** Parse many recognised lines, keeping only rows that yielded something. */
-export function parseOcrLines(lines: string[]): FrameOcrSuggestion[] {
+export function parseOcrLines(lines: string[], opts?: ParseOcrOptions): FrameOcrSuggestion[] {
   return lines
-    .map(parseOcrLine)
-    .filter((s) => s.frameNumber !== undefined || s.aperture || s.shutter || s.subject);
+    .map((l) => parseOcrLine(l, opts))
+    .filter(
+      (s) =>
+        s.frameNumber !== undefined ||
+        s.aperture ||
+        s.shutter ||
+        s.focalLength ||
+        s.weather?.length ||
+        s.subject,
+    );
 }
 
 /** The frame fields a reviewed suggestion writes (only the ones it has). */
 export interface FrameOcrPatch {
   aperture?: string;
   shutterSpeed?: string;
+  focalLength?: string;
+  weather?: Weather[];
   title?: string;
 }
 
@@ -115,6 +210,21 @@ export function suggestionToPatch(s: FrameOcrSuggestion): FrameOcrPatch {
   const patch: FrameOcrPatch = {};
   if (s.aperture) patch.aperture = s.aperture;
   if (s.shutter) patch.shutterSpeed = s.shutter;
+  if (s.focalLength) patch.focalLength = s.focalLength;
+  if (s.weather?.length) patch.weather = s.weather;
   if (s.subject) patch.title = s.subject;
   return patch;
+}
+
+/**
+ * Resolve a recognised focal length to a lens in the library, so "50mm" on the
+ * sheet becomes the actual lens record. Matches on the lens's focal length.
+ */
+export function matchLensByFocalLength<T extends { id: string; focalLength?: string }>(
+  focalLength: string | undefined,
+  lenses: T[],
+): T | undefined {
+  if (!focalLength) return undefined;
+  const want = focalLength.trim().toLowerCase();
+  return lenses.find((l) => (l.focalLength ?? "").trim().toLowerCase() === want);
 }
