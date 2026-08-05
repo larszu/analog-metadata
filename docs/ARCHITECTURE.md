@@ -73,6 +73,26 @@ ResolvedMetadata
 Both paths are covered by tests (`src/core/*.test.ts`), including a real EXIF
 write→read round-trip and unzip-and-verify of the export bundle.
 
+### Field mapping
+
+Which logbook field ends up in which metadata tag:
+
+| Logbook field        | Level  | Written to                                                        |
+|----------------------|--------|-------------------------------------------------------------------|
+| Camera make / model  | camera | `tiff:Make` / `tiff:Model`, EXIF Make/Model                       |
+| Lens                 | frame  | `exifEX:LensModel`, `aux:Lens` (Lightroom's Lens field)           |
+| Aperture             | frame  | `exif:FNumber`                                                    |
+| Shutter speed        | frame  | `exif:ExposureTime`                                               |
+| Film ISO (+ push)    | roll   | `exif:ISOSpeedRatings`, keywords                                  |
+| Focal length         | frame  | `exif:FocalLength`                                                |
+| Subject / title      | frame  | `dc:title`, `photoshop:Headline`                                  |
+| Description          | frame  | `dc:description`                                                  |
+| Keywords + film + Wx | frame  | `dc:subject`                                                      |
+| Date taken           | frame  | `xmp:CreateDate`, `photoshop:DateCreated`, `exif:DateTimeOriginal`|
+| Location             | frame  | `Iptc4xmpCore:Location`                                           |
+| GPS                  | frame  | `exif:GPSLatitude/Longitude`                                      |
+| Artist / copyright   | roll   | `dc:creator` / `dc:rights`                                        |
+
 ## The analog → digital assignment workflow
 
 The `RollWorkspace` page (`src/ui/pages/RollWorkspace.tsx`) is where the bridge
