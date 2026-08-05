@@ -30,8 +30,9 @@ photo apps already read.
 - 🖨️ **Print your own log sheets** — A6 / A5 / A4 / Letter, or 2×A6 folded on
   A4. Sheets printed for a roll carry a **QR back-link** to reopen it.
 - 🔤 **Handwriting OCR** *(beta)* — photograph the filled sheet and it reads all
-  six columns into per-frame suggestions you review before applying. Runs
-  **in your browser**, no cloud.
+  six columns into per-frame suggestions you review before applying. Recognition
+  runs **on your device — the photo is never uploaded** (the OCR engine itself is
+  fetched from a CDN on first use, then cached).
 - 🔗 **Assign scans** — import scans, auto-assign in order or link by hand.
 - ⤓ **Export** — XMP sidecars (Lightroom + Capture One), EXIF embedded into JPEG
   scans (Explorer / Finder), plus CSV — zipped with import instructions.
@@ -94,10 +95,13 @@ Publishing a GitHub Release builds Windows, macOS, Android and iOS automatically
 
 ## Status
 
-Working and tested: **92 unit tests** plus real-browser smoke runs; the UI is
-responsive from 390 px up. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for
-how it's built and [`docs/COMPARISON.md`](docs/COMPARISON.md) for how it compares
-to other film-log apps.
+Working and tested: **96 unit tests** plus headless end-to-end runs in which the
+*exported files* are validated — XMP parsed as XML, EXIF read back out of the
+JPEG. The UI is responsive from 390 px up. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for how it's built,
+[`docs/SECURITY.md`](docs/SECURITY.md) for the security/readiness audit, and
+[`docs/COMPARISON.md`](docs/COMPARISON.md) for how it compares to other film-log
+apps.
 
 **Beta caveats.** Handwriting OCR is best-effort — hence the review step; it
 likes straight, well-lit photos and neat block capitals. One-tap cloud sync needs
