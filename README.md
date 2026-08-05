@@ -56,6 +56,15 @@ already understand.
   moment (via free, keyless services).
 - 🖐️ **Capture the log page** — photograph your handwritten sheet with the
   device camera and keep it on-screen while you transcribe.
+- 🔤 **Handwriting recognition (OCR, beta)** — read the photographed sheet
+  **client-side** (Tesseract.js, no cloud) into per-frame suggestions; review
+  them in a table, then apply **frame no., aperture, shutter, lens, subject and
+  weather** to the frames. Because we print the sheet ourselves, recognition is
+  grounded in what's on the page: the fixed column order maps tokens to fields
+  (first numeric = f-stop, next = shutter), "50mm" resolves to the matching lens
+  in your library, Wx words become weather chips, and the **pre-printed frame
+  numbers repair** OCR's most common artifact (the frame running into the
+  aperture, "1 5.6" → "15.6").
 - 🔗 **Pair phone ⇆ desktop** — beam a log-page photo from your phone straight
   to the desktop over your local network via a QR handshake (WebRTC, no cloud).
 - 🔗 **Assign scans intuitively** — import your scans, then **auto-assign in
@@ -68,10 +77,12 @@ already understand.
   import it on another device.
 - ☁️ **Cloud sync** — point at one JSON file in any synced drive (iCloud Drive,
   Dropbox, Drive…); “Sync now” merges devices with last-write-wins.
-- 🖨️ **Print your own logbook** — generate blank **DIN A6** log sheets as a PDF
-  to carry with your camera. Print a booklet **for a roll** and every sheet gets
-  a **QR back-link** — photograph it back in (Film rolls ▸ Scan booklet) to jump
-  straight to that roll.
+- 🖨️ **Print your own logbook** — generate blank log sheets as a PDF at your
+  chosen **paper size** (A6 / A5 / A4 / Letter, or 2×A6 folded on A4). Type or
+  pick the **camera, film and lens** — anything new is **recognised** and can be
+  saved to your library in one tap. Print a booklet **for a roll** and every
+  sheet gets a **QR back-link** — photograph it back in (Film rolls ▸ Scan
+  booklet) to jump straight to that roll.
 - 🌗 **Light & dark theme** and **English / German** UI, switchable in Settings
   (theme follows the OS by default).
 
@@ -214,6 +225,10 @@ Driven by user reviews of the competitors (see
   back in to jump to the roll
 - ✅ **Light & dark theme** and **English / German** UI
 - ✅ **Automated release builds** for Windows, macOS, Android and iOS
+- ✅ **Booklet paper sizes** (A6/A5/A4/Letter) + manual camera/film/lens entry
+  with library recognition ("add to library" for new gear)
+- ✅ **Handwriting OCR (beta)** — read a photographed log sheet into reviewable
+  per-frame suggestions (all six columns), fully client-side
 
 ### Still on the roadmap
 
@@ -229,13 +244,13 @@ Driven by user reviews of the competitors (see
 React + TypeScript + Vite · Dexie (IndexedDB) · pdf-lib (booklet PDFs) ·
 piexifjs (EXIF embedding) · a hand-rolled XMP writer for Lightroom/Capture One
 interop · WebRTC + qrcode/jsQR for pairing & booklet QR · File System Access API
-for sync · Open-Meteo geocoding + historical-weather APIs · CSS-variable theming
+for sync · Open-Meteo geocoding + historical-weather APIs · Tesseract.js (client-side OCR) · CSS-variable theming
 (light/dark) · a tiny English-key i18n layer (English/German) · Tauri 2
 (desktop) + Capacitor (mobile) shells · GitHub Actions release builds.
 
 ## Status
 
-Core is implemented and tested end-to-end — **66 unit tests** (parsing, XMP,
+Core is implemented and tested end-to-end — **92 unit tests** (parsing, XMP,
 EXIF write→read round-trip, ZIP bundle, booklet PDF + roll-QR payload, backup +
 last-write-wins sync merge, search, stats, weather geocoding/historical lookup
 and pairing chunk/transfer) plus a real-browser smoke that seeds a library,

@@ -33,16 +33,29 @@ export function parseRollQr(text: string): string | undefined {
 const A6 = { w: 105 * MM, h: 148 * MM };
 const A4_LANDSCAPE = { w: 297 * MM, h: 210 * MM };
 
+/** Paper sizes for the one-sheet-per-page layout (portrait, in mm). */
+export type PageSize = "A6" | "A5" | "A4" | "Letter";
+export const PAGE_SIZES: Record<PageSize, { w: number; h: number }> = {
+  A6: { w: 105 * MM, h: 148 * MM },
+  A5: { w: 148 * MM, h: 210 * MM },
+  A4: { w: 210 * MM, h: 297 * MM },
+  Letter: { w: 215.9 * MM, h: 279.4 * MM },
+};
+
 export interface BookletOptions {
-  layout?: "a6" | "a4-2up";
+  /** "single" = one sheet per page (sized by `pageSize`); "a4-2up" = 2×A6 on A4. */
+  layout?: "single" | "a4-2up" | "a6";
+  /** Paper size for the single-sheet layout. Ignored for a4-2up. */
+  pageSize?: PageSize;
   /** Rows (frames) per sheet. Extra frames spill onto additional sheets. */
   framesPerSheet?: number;
   /** How many sheets/pages of blank log to produce. */
   sheets?: number;
   title?: string;
-  /** Pre-fill the header fields (e.g. from a selected camera/roll). */
+  /** Pre-fill the header fields (e.g. from a selected camera/roll/lens). */
   camera?: string;
   film?: string;
+  lens?: string;
   iso?: string;
   date?: string;
   /** When set, a QR of this string is stamped on every sheet (roll back-link). */
@@ -109,10 +122,12 @@ function drawSheet(
   });
   y -= 16;
 
-  // Header fields (recorded once per roll).
+  // Header fields (recorded once per roll). Lens sits here too since it's often
+  // one lens for the whole roll; per-frame lens changes go in the table column.
   const headerFields: [string, string][] = [
     ["Camera", opts.camera || ""],
     ["Film", opts.film || ""],
+    ["Lens", opts.lens || ""],
     ["ISO", opts.iso || ""],
     ["Date", opts.date || ""],
   ];
@@ -133,7 +148,8 @@ function drawSheet(
       });
     }
   });
-  y -= 12 + 8;
+  const headerRows = Math.ceil(headerFields.length / 2);
+  y -= (headerRows - 1) * 12 + 8;
 
   // Table header
   const totalW = COLUMNS.reduce((s, c) => s + c.w, 0);
@@ -186,7 +202,9 @@ function drawSheet(
 }
 
 export async function buildBookletPdf(opts: BookletOptions = {}): Promise<Uint8Array> {
-  const layout = opts.layout ?? "a6";
+  // "a6" kept as a backwards-compatible alias for the single-sheet layout.
+  const layout = opts.layout === "a4-2up" ? "a4-2up" : "single";
+  const size = PAGE_SIZES[opts.pageSize ?? "A6"];
   const framesPerSheet = opts.framesPerSheet ?? 12;
   const sheets = Math.max(1, opts.sheets ?? 3);
 
@@ -235,8 +253,8 @@ export async function buildBookletPdf(opts: BookletOptions = {}): Promise<Uint8A
     }
   } else {
     for (let s = 0; s < sheets; s++) {
-      const page = doc.addPage([A6.w, A6.h]);
-      drawSheet(page, fonts, 0, 0, A6.w, A6.h, opts, frame, framesPerSheet, qrImage);
+      const page = doc.addPage([size.w, size.h]);
+      drawSheet(page, fonts, 0, 0, size.w, size.h, opts, frame, framesPerSheet, qrImage);
       frame += framesPerSheet;
     }
   }

@@ -8,10 +8,12 @@ import {
   deleteRoll,
   updateRoll,
 } from "../../data/repo";
-import type { Roll } from "../../domain/types";
+import type { Frame, Roll, Weather } from "../../domain/types";
 import { resolveFrameMetadata } from "../../core/mapping";
 import { buildExportZip, type ExportItem } from "../../core/export";
 import { fileToDataUrl, makeThumbnail } from "../imageUtils";
+import { recognizeLogPage } from "../../data/ocr";
+import { matchLensByFocalLength, suggestionToPatch, type FrameOcrSuggestion } from "../../core/ocr";
 import { Field, Modal, Empty, useToast } from "../components";
 import { useT } from "../../app/prefs";
 import { FrameEditor, type ScanEntry } from "./FrameEditor";
@@ -35,6 +37,8 @@ export function RollWorkspace() {
   const scanBytes = useRef<Map<string, string>>(new Map());
   const [showSettings, setShowSettings] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [ocrRows, setOcrRows] = useState<FrameOcrSuggestion[] | null>(null);
+  const [ocrProgress, setOcrProgress] = useState<number | null>(null);
 
   const scanInput = useRef<HTMLInputElement>(null);
   const logInput = useRef<HTMLInputElement>(null);
@@ -105,6 +109,45 @@ export function RollWorkspace() {
 
   const removeLogPhoto = async (photoId: string) => {
     await updateRoll(roll.id, { logPhotos: (roll.logPhotos ?? []).filter((p) => p.id !== photoId) });
+  };
+
+  // OCR: recognise the handwriting on a log page into per-frame suggestions.
+  const runOcr = async (dataUrl: string) => {
+    setOcrProgress(0);
+    try {
+      const rows = await recognizeLogPage(
+        dataUrl,
+        (p) => setOcrProgress(p),
+        frames.map((f) => f.frameNumber),
+      );
+      if (rows.length === 0) {
+        toast(t("No text recognised — try a sharper, straighter photo"));
+      } else {
+        setOcrRows(rows);
+      }
+    } catch {
+      toast(t("Text recognition failed on this device"));
+    } finally {
+      setOcrProgress(null);
+    }
+  };
+
+  // Apply reviewed OCR rows onto the matching frames (by frame number).
+  const applyOcr = async (rows: FrameOcrSuggestion[]) => {
+    let applied = 0;
+    for (const r of rows) {
+      if (r.frameNumber === undefined) continue;
+      const target = frames.find((f) => f.frameNumber === r.frameNumber);
+      if (!target) continue;
+      const patch: Partial<Frame> = { ...suggestionToPatch(r), updatedAt: new Date().toISOString() };
+      // A recognised "50mm" resolves to the actual lens record when we have one.
+      const lens = matchLensByFocalLength(r.focalLength, lenses ?? []);
+      if (lens) patch.lensId = lens.id;
+      await db.frames.update(target.id, patch);
+      applied++;
+    }
+    setOcrRows(null);
+    toast(applied ? t("Applied OCR to {n} frames", { n: applied }) : t("Nothing to apply"));
   };
 
   const addFrame = async () => {
@@ -205,13 +248,19 @@ export function RollWorkspace() {
         <div>
           {(roll.logPhotos ?? []).length > 0 && (
             <div className="card" style={{ marginBottom: 14 }}>
-              <h3>Log page reference</h3>
+              <h3>{t("Log page reference")}</h3>
               {(roll.logPhotos ?? []).map((p) => (
                 <div key={p.id} style={{ marginBottom: 8 }}>
                   <img className="log-photo" src={p.dataUrl} alt="handwritten log page" />
-                  <button className="btn ghost sm" onClick={() => removeLogPhoto(p.id)}>Remove</button>
+                  <div className="row" style={{ gap: 6 }}>
+                    <button className="btn sm" onClick={() => runOcr(p.dataUrl)} disabled={ocrProgress !== null}>
+                      {ocrProgress !== null ? t("Reading… {pct}%", { pct: Math.round(ocrProgress * 100) }) : t("🔎 Recognise handwriting")}
+                    </button>
+                    <button className="btn ghost sm" onClick={() => removeLogPhoto(p.id)}>{t("Remove")}</button>
+                  </div>
                 </div>
               ))}
+              <p className="hint">{t("OCR (beta): reads the sheet into frame suggestions you review before applying. Works best on a straight, well-lit photo with neat block capitals.")}</p>
             </div>
           )}
 
@@ -252,7 +301,77 @@ export function RollWorkspace() {
       {showSettings && (
         <RollSettings roll={roll} onClose={() => setShowSettings(false)} onDeleted={() => (window.location.hash = "#/rolls")} />
       )}
+
+      {ocrRows && (
+        <OcrReview rows={ocrRows} onCancel={() => setOcrRows(null)} onApply={applyOcr} />
+      )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+function OcrReview({
+  rows,
+  onCancel,
+  onApply,
+}: {
+  rows: FrameOcrSuggestion[];
+  onCancel: () => void;
+  onApply: (rows: FrameOcrSuggestion[]) => void;
+}) {
+  const t = useT();
+  const [draft, setDraft] = useState<FrameOcrSuggestion[]>(rows);
+
+  const set = (i: number, patch: Partial<FrameOcrSuggestion>) =>
+    setDraft((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+
+  const num = (v: string) => (v.trim() === "" ? undefined : Number(v));
+
+  return (
+    <Modal title={t("Review recognised text")} onClose={onCancel} wide>
+      <p className="hint" style={{ marginTop: 0 }}>
+        {t("Check each row — OCR of handwriting isn't perfect. Set a frame number for a row to apply it; leave it blank to skip.")}
+      </p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+          <thead>
+            <tr style={{ textAlign: "left", color: "var(--text-dim)" }}>
+              <th style={{ padding: "4px 6px", width: 60 }}>{t("Frame")}</th>
+              <th style={{ padding: "4px 6px", width: 74 }}>f/</th>
+              <th style={{ padding: "4px 6px", width: 86 }}>{t("Shutter speed")}</th>
+              <th style={{ padding: "4px 6px", width: 86 }}>{t("Lens")}</th>
+              <th style={{ padding: "4px 6px" }}>{t("Subject / title")}</th>
+              <th style={{ padding: "4px 6px", width: 110 }}>{t("Weather")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {draft.map((r, i) => (
+              <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
+                <td style={{ padding: "4px 6px" }}>
+                  <input value={r.frameNumber ?? ""} onChange={(e) => set(i, { frameNumber: num(e.target.value) })} inputMode="numeric" />
+                </td>
+                <td style={{ padding: "4px 6px" }}><input value={r.aperture ?? ""} onChange={(e) => set(i, { aperture: e.target.value })} /></td>
+                <td style={{ padding: "4px 6px" }}><input value={r.shutter ?? ""} onChange={(e) => set(i, { shutter: e.target.value })} /></td>
+                <td style={{ padding: "4px 6px" }}>
+                  <input value={r.focalLength ?? ""} onChange={(e) => set(i, { focalLength: e.target.value })} placeholder="50" />
+                </td>
+                <td style={{ padding: "4px 6px" }}><input value={r.subject ?? ""} onChange={(e) => set(i, { subject: e.target.value })} /></td>
+                <td style={{ padding: "4px 6px" }}>
+                  <input
+                    value={(r.weather ?? []).join(", ")}
+                    onChange={(e) => set(i, { weather: e.target.value.split(",").map((w) => w.trim()).filter(Boolean) as Weather[] })}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="modal-actions">
+        <button className="btn ghost" onClick={onCancel}>{t("Cancel")}</button>
+        <button className="btn primary" onClick={() => onApply(draft)}>{t("Apply to frames")}</button>
+      </div>
+    </Modal>
   );
 }
 
