@@ -21,9 +21,25 @@ const COLUMNS: { header: string; get: (m: ResolvedMetadata) => string }[] = [
   { header: "Copyright", get: (m) => m.copyright ?? "" },
 ];
 
+/**
+ * A cell starting with = + - @ (or tab/CR) is evaluated as a *formula* by Excel
+ * and LibreOffice, so a subject line like `=cmd|'/c calc'!A0` would execute when
+ * the export is opened (CWE-1236, "CSV injection"). Prefixing with an apostrophe
+ * forces the spreadsheet to treat it as literal text.
+ */
+const FORMULA_START = /^[=+\-@\t\r]/;
+/**
+ * Plain numbers — and comma-separated numeric tuples like a "lat,lon" pair —
+ * are inert and must keep their sign, e.g. a southern latitude "-33.86,151.2".
+ */
+const NUM = String.raw`[-+]?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?`;
+const PLAIN_NUMBER = new RegExp(`^${NUM}(?:,${NUM})*$`);
+
 function cell(value: string): string {
-  if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
-  return value;
+  const safe =
+    FORMULA_START.test(value) && !PLAIN_NUMBER.test(value) ? `'${value}` : value;
+  if (/[",\n\r]/.test(safe)) return `"${safe.replace(/"/g, '""')}"`;
+  return safe;
 }
 
 export function framesToCsv(records: ResolvedMetadata[]): string {
