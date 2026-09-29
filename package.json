@@ -4,6 +4,21 @@
   "private": true,
   "type": "module",
   "description": "Capture handwritten analog film-log metadata and bridge it into digital scans (Lightroom, Capture One, Explorer/Finder). iOS, Android, Windows and macOS from one codebase.",
+  "keywords": [
+    "analog-photography",
+    "film-photography",
+    "exif",
+    "xmp",
+    "metadata",
+    "lightroom",
+    "capture-one",
+    "film-scanning",
+    "ocr",
+    "photography",
+    "cross-platform",
+    "local-first",
+    "typescript"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
